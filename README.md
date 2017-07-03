@@ -1,4 +1,6 @@
 
+[![npm version](https://img.shields.io/npm/v/yaml-import-loader.svg)](https://www.npmjs.com/package/yaml-import-loader)
+
 ```yaml
 # file1.yml
 
