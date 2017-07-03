@@ -40,5 +40,4 @@ function load(source) {
     }
 };
 
-
 module.exports = load;

@@ -10,7 +10,11 @@
     "type": "git",
     "url": "git+https://github.com/ngfk/yaml-import-loader.git"
   },
-  "keywords": [],
+  "keywords": [
+    "yaml",
+    "import",
+    "loader"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -19,5 +23,8 @@
   "homepage": "https://github.com/ngfk/yaml-import-loader#readme",
   "dependencies": {
     "js-yaml": "^3.5.2"
-  }
+  },
+  "files": [
+    "index.js"
+  ]
 }
