@@ -7,14 +7,43 @@ const defaultOptions = {
     keyword: 'import'
 };
 
+const parseDirect = (source, keyword) => {
+    let oldLines = source.split('\n');
+    let newLines = [];
+    let deps     = [];
+
+    for (let i = 0; i < oldLines.length; i++) {
+        let line  = oldLines[i];
+        let regex = new RegExp(`^!${keyword}\\s+['"]?(.*\\.ya?ml)['"]?\\s*$`);
+        let match = line.match(regex);
+        
+        if (match) {
+            const location  = path.resolve(match[1]);
+            const data      = fs.readFileSync(location).toString();
+            const subResult = parseDirect(data, keyword);
+
+            deps.push(location, ...subResult.deps);
+            newLines.push(...subResult.lines);
+        }
+        else
+            newLines.push(line);
+    }
+
+    return { lines: newLines, deps };
+};
+
 const parse = (source, keyword) => {
     let deps = [];
+
+    const subResult = parseDirect(source, keyword);
+    deps.push(...subResult.deps);
+    source = subResult.lines.join('\n');
 
     const type = new YAML.Type('!' + keyword, {
         kind: 'scalar',
         construct: uri => {
             const location  = path.resolve(uri);
-            const data      = fs.readFileSync(location);
+            const data      = fs.readFileSync(location).toString();
             const subResult = parse(data, keyword);
 
             deps.push(location, ...subResult.deps);
