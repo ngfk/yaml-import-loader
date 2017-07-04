@@ -2,10 +2,9 @@
 [![npm version](https://img.shields.io/npm/v/yaml-import-loader.svg)](https://www.npmjs.com/package/yaml-import-loader)
 
 ```yaml
-# file1.yml
+# main.yml
 
-# TODO: direct import
-# !import ./file1.yml
+!import ./file1.yml
 
 hello: world!
 external_map: !import ./file2.yml
