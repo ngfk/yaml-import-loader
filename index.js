@@ -1,11 +1,11 @@
-const path    = require('path');
-const fs      = require('fs');
-const jsyaml  = require('js-yaml');
+const path = require('path');
+const fs   = require('fs');
+const YAML = require('js-yaml');
 
 const parse = (source) => {
     let deps = [];
 
-    const type = new jsyaml.Type('!import', {
+    const type = new YAML.Type('!import', {
         kind: 'scalar',
         construct: uri => {
             const location  = path.resolve(uri);
@@ -17,8 +17,8 @@ const parse = (source) => {
         }
     });
 
-    const obj = jsyaml.safeLoad(source, {
-        schema: jsyaml.Schema.create([type])
+    const obj = YAML.safeLoad(source, {
+        schema: YAML.Schema.create([type])
     });
 
     return { obj, deps };
@@ -32,7 +32,7 @@ function load(source) {
         for (let dep of deps)
             this.addDependency(dep);
 
-        return JSON.stringify(obj);
+        return YAML.safeDump(obj);
     }
     catch (err) {
         this.emitError(err);
