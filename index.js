@@ -1,5 +1,5 @@
-const path  = require('path');
-const fs    = require('fs');
+const { join, dirname } = require('path');
+const { readFile } = require('fs');
 const YAML  = require('js-yaml');
 const utils = require('loader-utils');
 
@@ -7,9 +7,9 @@ const defaultOptions = {
     keyword: 'import'
 };
 
-const readFile = (file) => {
+const read = (file) => {
     return new Promise((resolve, reject) => {
-        fs.readFile(file, (err, data) => {
+        readFile(file, (err, data) => {
             if (err)
                 reject(err);
             else
@@ -18,7 +18,7 @@ const readFile = (file) => {
     });
 };
 
-const parseRootImports = (source, keyword) => {
+const parseRootImports = (source, keyword, path) => {
     let oldLines = source.split('\n');
     let newLines = [];
     let deps = [];
@@ -30,12 +30,12 @@ const parseRootImports = (source, keyword) => {
         const match = line.match(regex);
         
         if (match) {
-            const location = path.resolve(match[1]);
+            const filePath = join(path, match[1]);
             promises.push(
-                readFile(location)
-                    .then(data => parseRootImports(data, keyword))
+                read(filePath)
+                    .then(data => parseRootImports(data, keyword, dirname(filePath)))
                     .then(result => {
-                        deps.push(location, ...result.deps);
+                        deps.push(filePath, ...result.deps);
                         newLines.push(...result.lines);
                     })
             );
@@ -71,8 +71,8 @@ const resolvePromises = (value) => {
     return Promise.resolve(value);
 };
 
-const parseImports = (source, keyword) => {
-    return parseRootImports(source, keyword).then(subResult => {
+const parseImports = (source, keyword, path) => {
+    return parseRootImports(source, keyword, path).then(subResult => {
         let deps = [];
         deps.push(...subResult.deps);
         source = subResult.lines.join('\n');
@@ -80,11 +80,11 @@ const parseImports = (source, keyword) => {
         const type = new YAML.Type('!' + keyword, {
             kind: 'scalar',
             construct: uri => {
-                const location = path.resolve(uri);
-                return readFile(location)
-                    .then(data => parseImports(data, keyword))
+                const filePath = join(path, uri);
+                return read(filePath)
+                    .then(data => parseImports(data, keyword, dirname(filePath)))
                     .then(result => {
-                        deps.push(location, ...result.deps);
+                        deps.push(filePath, ...result.deps);
                         return result.obj;
                     });
             }
@@ -103,7 +103,7 @@ function load(source) {
     const options  = Object.assign({}, defaultOptions, utils.getOptions(this));
     const callback = this.async();
 
-    parseImports(source, options.keyword)
+    parseImports(source, options.keyword, dirname(this.resourcePath))
         .then(({ obj, deps }) => {
             for (let dep of deps)
                 this.addDependency(dep);
