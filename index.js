@@ -119,8 +119,15 @@ function load(source) {
                 callback(null, JSON.stringify(obj));
             else if (options.output === 'yaml')
                 callback(null, YAML.safeDump(obj));
-            else
-                callback(null, obj);
+            else if (options.output === 'raw')
+                callback(null, obj)
+            else {
+                let value = JSON.stringify(obj);
+                callback(null, this.version && this.version >= 2
+                    ? `export default ${value};`
+                    : `module.exports = ${value};`
+                );
+            }
         })
         .catch(err => {
             this.emitError(err);

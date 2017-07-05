@@ -6,7 +6,7 @@ const loader = require('../index');
 describe('loader basics', () => {
 
     it('no change without import keywords', () => {
-        return utils.context('./yaml/plain.yml')
+        return utils.context('./yaml/plain.yml', { output: 'raw' })
             .then(context => utils.load(context, loader))
             .then(({ result, deps, source }) => {
                 expect(deps).eql([]);
@@ -18,7 +18,7 @@ describe('loader basics', () => {
     });
 
     it('allow root import', () => {
-        return utils.context('./yaml/root.yml', { importRoot: true })
+        return utils.context('./yaml/root.yml', { output: 'raw', importRoot: true })
             .then(context => utils.load(context, loader))
             .then(({ result, deps }) => {
                 expect(deps).eql([
@@ -33,7 +33,7 @@ describe('loader basics', () => {
     });
 
     it('allow nested import', () => {
-        return utils.context('./yaml/nested.yml')
+        return utils.context('./yaml/nested.yml', { output: 'raw' })
             .then(context => utils.load(context, loader))
             .then(({ result, deps }) => {
                 expect(deps).eql([
@@ -49,7 +49,7 @@ describe('loader basics', () => {
     });
 
     it('allow mixed import', () => {
-        return utils.context('./yaml/mixed.yml', { importRoot: true })
+        return utils.context('./yaml/mixed.yml', { output: 'raw', importRoot: true })
             .then(context => utils.load(context, loader))
             .then(({ result, deps }) => {
                 expect(deps).eql([

@@ -6,23 +6,14 @@ const YAML = require('js-yaml');
 
 describe('loader output', () => {
 
-    it('default output should be javascript object', () => {
-        return utils.context('./yaml/mixed.yml', { importRoot: true })
+    it('default output should be an exported javascript object', () => {
+        return utils.context('./yaml/plain.yml', { importRoot: true })
             .then(context => utils.load(context, loader))
             .then(({ result, deps }) => {
-                expect(result).eql({
+                expect(result).eql(`module.exports = ${JSON.stringify({
                     hello: 'world',
                     test: 'a',
-                    value: {
-                        hello: 'world',
-                        test: 'a'
-                    },
-                    other: [
-                        'value1',
-                        'value2',
-                        'value3',
-                    ]
-                });
+                })};`);
             });
     });
 

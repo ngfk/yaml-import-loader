@@ -14,7 +14,8 @@
   "keywords": [
     "yaml",
     "import",
-    "loader"
+    "loader",
+    "webpack"
   ],
   "author": "",
   "license": "ISC",
