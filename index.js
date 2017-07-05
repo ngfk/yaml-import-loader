@@ -42,6 +42,7 @@ const parse = (source, keyword) => {
     const type = new YAML.Type('!' + keyword, {
         kind: 'scalar',
         construct: uri => {
+            // TODO: how to make this async?
             const location  = path.resolve(uri);
             const data      = fs.readFileSync(location).toString();
             const subResult = parse(data, keyword);
@@ -61,17 +62,18 @@ const parse = (source, keyword) => {
 function load(source) {
     this.cacheable && this.cacheable();
     const options = Object.assign({}, defaultOptions, utils.getOptions(this));
+    const callback = this.async();
 
     try {
         const { obj, deps } = parse(source, options.keyword);
         for (let dep of deps)
             this.addDependency(dep);
 
-        return YAML.safeDump(obj);
+        callback(null, YAML.safeDump(obj))
     }
     catch (err) {
         this.emitError(err);
-        return null;
+        callback(err, null);
     }
 };
 

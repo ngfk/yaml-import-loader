@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/**/*.spec.js",
+    "test:watch": "mocha --watch ./**/*.js test/**/*.spec.js"
   },
   "repository": {
     "type": "git",
@@ -27,5 +28,10 @@
   },
   "files": [
     "index.js"
-  ]
+  ],
+  "devDependencies": {
+    "chai": "^4.0.2",
+    "mocha": "^3.4.2",
+    "mock-fs": "^4.4.1"
+  }
 }
