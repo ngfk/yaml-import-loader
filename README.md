@@ -97,5 +97,7 @@ console.log(JSON.stringify(yaml, undefined, 4));
 // }
 ```
 
-### YAML to JSON file
+### Projects
+
+* [ngx-translate-yaml](https://github.com/ngfk/ngx-translate-yaml)
 
