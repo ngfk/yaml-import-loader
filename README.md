@@ -22,7 +22,7 @@ key2: !import ./array.yml
 
 ```yaml
 # hello_world.yml
-hello: world!
+hello: world
 ```
 
 ```yaml
