@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha test/**/*.spec.js",
-    "test:watch": "mocha --watch ./**/*.js test/**/*.spec.js"
+    "test:watch": "mocha --watch --watch-extensions js,yml,yaml test/**/*.spec.js"
   },
   "repository": {
     "type": "git",
@@ -31,7 +31,6 @@
   ],
   "devDependencies": {
     "chai": "^4.0.2",
-    "mocha": "^3.4.2",
-    "mock-fs": "^4.4.1"
+    "mocha": "^3.4.2"
   }
 }

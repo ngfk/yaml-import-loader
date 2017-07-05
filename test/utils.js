@@ -1,13 +1,15 @@
-'use strict';
+const fs = require('fs');
+const path = require('path');
 
 const DEPENDENCIES = Symbol('dependencies');
 const DONE = Symbol('done');
+const DATA = Symbol('data');
 
 class Context {
 
     constructor(done) {
         this[DEPENDENCIES] = [];
-        this[DONE] = done;
+        this.resourcePath = path.resolve(__dirname, __filename);
     }
 
     callback(error, result) {
@@ -15,7 +17,7 @@ class Context {
     }
 
     async() {
-        return (e, r) => this.callback(e, r);
+        return (...args) => this.callback(...args);
     }
 
     addDependency(dependency) {
@@ -27,17 +29,45 @@ class Context {
     }
 }
 
-const load = (loader, source) => {
+const load = (context, loader) => {
     return new Promise((resolve, reject) => {
-        let context = new Context((e, r, d) => {
+        context[DONE] = (e, r, d) => {
             if (e)
                 reject(e);
-            else
-                resolve({ result: r, deps: d });
-        });
+            else {
+                resolve({
+                    result: r,
+                    deps: d,
+                    source: context[DATA]
+                });
+            }
+        };
 
-        loader.call(context, source);
+        loader.call(context, context[DATA]);
     });
 };
 
-module.exports = { load };
+const context = (file) => {
+    let filePath = path.resolve(__dirname, file);
+    return read(filePath).then(data => {
+        let context = new Context();
+        context.resourcePath = filePath;
+        context[DATA] = data.toString();
+        return context;
+    });
+}
+
+const read = (file) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path.resolve(__dirname, file), (err, data) => {
+            if (err)
+                reject(err);
+            else
+                resolve(data.toString());
+        });
+    });
+}
+
+const resolve = (file) => path.resolve(__dirname, file);
+
+module.exports = { load, context, read, resolve };
