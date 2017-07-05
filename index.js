@@ -7,10 +7,21 @@ const defaultOptions = {
     keyword: 'import'
 };
 
-const parseDirect = (source, keyword) => {
+const readFile = (file) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(file, (err, data) => {
+            if (err)
+                reject(err);
+            else
+                resolve(data.toString());
+        });
+    });
+};
+
+const parseRootImports = async (source, keyword) => {
     let oldLines = source.split('\n');
     let newLines = [];
-    let deps     = [];
+    let deps = [];
 
     for (let i = 0; i < oldLines.length; i++) {
         let line  = oldLines[i];
@@ -19,8 +30,8 @@ const parseDirect = (source, keyword) => {
         
         if (match) {
             const location  = path.resolve(match[1]);
-            const data      = fs.readFileSync(location).toString();
-            const subResult = parseDirect(data, keyword);
+            const data      = await readFile(location);
+            const subResult = await parseRootImports(data, keyword);
 
             deps.push(location, ...subResult.deps);
             newLines.push(...subResult.lines);
@@ -32,29 +43,46 @@ const parseDirect = (source, keyword) => {
     return { lines: newLines, deps };
 };
 
-const parse = (source, keyword) => {
+const resolvePromises = async (value) => {    
+    if (value instanceof Promise)
+        return await value;
+    if (value instanceof Array)
+        return await Promise.all(value.map(async entry => await resolvePromises(entry)));
+    
+    if (typeof value === 'object') {
+        for (let key in value)
+            value[key] = await resolvePromises(value[key]);
+    }
+
+    return value;
+};
+
+const parseImports = async (source, keyword) => {
     let deps = [];
 
-    const subResult = parseDirect(source, keyword);
+    const subResult = await parseRootImports(source, keyword);
     deps.push(...subResult.deps);
     source = subResult.lines.join('\n');
 
     const type = new YAML.Type('!' + keyword, {
         kind: 'scalar',
-        construct: uri => {
-            // TODO: how to make this async?
+        construct: async uri => {
             const location  = path.resolve(uri);
-            const data      = fs.readFileSync(location).toString();
-            const subResult = parse(data, keyword);
+            const data      = await readFile(location);
+            const subResult = await parseImports(data, keyword);
 
             deps.push(location, ...subResult.deps);
             return subResult.obj;
         }
     });
 
-    const obj = YAML.safeLoad(source, {
+    let obj = YAML.safeLoad(source, {
         schema: YAML.Schema.create([type])
     });
+
+    // Since the construct function in our type is async we are
+    // left with promises, these have to be resolved.
+    obj = await resolvePromises(obj);
 
     return { obj, deps };
 };
@@ -64,17 +92,16 @@ function load(source) {
     const options = Object.assign({}, defaultOptions, utils.getOptions(this));
     const callback = this.async();
 
-    try {
-        const { obj, deps } = parse(source, options.keyword);
-        for (let dep of deps)
-            this.addDependency(dep);
-
-        callback(null, YAML.safeDump(obj))
-    }
-    catch (err) {
-        this.emitError(err);
-        callback(err, null);
-    }
+    parseImports(source, options.keyword)
+        .then(({ obj, deps }) => {
+            for (let dep of deps)
+                this.addDependency(dep);
+            callback(null, YAML.safeDump(obj))
+        })
+        .catch(err => {
+            this.emitError(err);
+            callback(err, null);
+        });
 };
 
 module.exports = load;
