@@ -47,11 +47,12 @@ const load = (context, loader) => {
     });
 };
 
-const context = (file) => {
+const context = (file, options = {}) => {
     let filePath = path.resolve(__dirname, file);
     return read(filePath).then(data => {
         let context = new Context();
         context.resourcePath = filePath;
+        context.query = options;
         context[DATA] = data.toString();
         return context;
     });

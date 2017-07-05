@@ -1,1 +1,4 @@
+!import ./plain.yml
 !import ./nested.yml
+
+other: !import ./array.yml

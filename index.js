@@ -6,7 +6,8 @@ const utils = require('loader-utils');
 const defaultOptions = {
     importRoot: false,
     importNested: true,
-    importKeyword: 'import'
+    importKeyword: 'import',
+    output: 'object'
 };
 
 const read = (file) => {
@@ -23,7 +24,7 @@ const read = (file) => {
 const parseRootImports = (source, path, options) => {
     let oldLines = source.split('\n');
     let newLines = [];
-    let deps = [];
+    let deps = {};
     let promises = [];
 
     for (let i = 0; i < oldLines.length; i++) {
@@ -37,7 +38,7 @@ const parseRootImports = (source, path, options) => {
                 read(filePath)
                     .then(data => parseRootImports(data, dirname(filePath), options))
                     .then(result => {
-                        deps.push(filePath, ...result.deps);
+                        deps[filePath] = true;
                         newLines.push(...result.lines);
                     })
             );
@@ -76,7 +77,7 @@ const resolvePromises = (value) => {
 const parseImports = (source, path, options) => {
     let root = options.importRoot
         ? parseRootImports(source, path, options).then(({ lines, deps }) => ({ source: lines.join('\n'), deps }))
-        : Promise.resolve({ source, deps: [] });
+        : Promise.resolve({ source, deps: {} });
 
     return root.then(({ source, deps }) => {
         let types = [];
@@ -89,7 +90,7 @@ const parseImports = (source, path, options) => {
                     return read(filePath)
                         .then(data => parseImports(data, dirname(filePath), options))
                         .then(result => {
-                            deps.push(filePath, ...result.deps);
+                            deps[filePath] = true;
                             return result.obj;
                         });
                 }
@@ -109,13 +110,17 @@ function load(source) {
     const callback = this.async();
 
     let options = Object.assign({}, defaultOptions, utils.getOptions(this));
-
     parseImports(source, dirname(this.resourcePath), options)
         .then(({ obj, deps }) => {
-            for (let dep of deps)
+            for (let dep of Object.keys(deps))
                 this.addDependency(dep);
 
-            callback(null, YAML.safeDump(obj));
+            if (options.output === 'json')
+                callback(null, JSON.stringify(obj));
+            else if (options.output === 'yaml')
+                callback(null, YAML.safeDump(obj));
+            else
+                callback(null, obj);
         })
         .catch(err => {
             this.emitError(err);
