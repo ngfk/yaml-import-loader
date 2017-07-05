@@ -18,84 +18,97 @@ const readFile = (file) => {
     });
 };
 
-const parseRootImports = async (source, keyword) => {
+const parseRootImports = (source, keyword) => {
     let oldLines = source.split('\n');
     let newLines = [];
     let deps = [];
+    let promises = [];
 
     for (let i = 0; i < oldLines.length; i++) {
-        let line  = oldLines[i];
-        let regex = new RegExp(`^!${keyword}\\s+['"]?(.*\\.ya?ml)['"]?\\s*$`);
-        let match = line.match(regex);
+        const line  = oldLines[i];
+        const regex = new RegExp(`^!${keyword}\\s+['"]?(.*\\.ya?ml)['"]?\\s*$`);
+        const match = line.match(regex);
         
         if (match) {
-            const location  = path.resolve(match[1]);
-            const data      = await readFile(location);
-            const subResult = await parseRootImports(data, keyword);
-
-            deps.push(location, ...subResult.deps);
-            newLines.push(...subResult.lines);
+            const location = path.resolve(match[1]);
+            promises.push(
+                readFile(location)
+                    .then(data => parseRootImports(data, keyword))
+                    .then(result => {
+                        deps.push(location, ...result.deps);
+                        newLines.push(...result.lines);
+                    })
+            );
         }
         else
             newLines.push(line);
     }
 
-    return { lines: newLines, deps };
+    return Promise.all(promises).then(_ => ({ lines: newLines, deps }));
 };
 
-const resolvePromises = async (value) => {    
+const resolvePromises = (value) => {
     if (value instanceof Promise)
-        return await value;
+        return value;
+
     if (value instanceof Array)
-        return await Promise.all(value.map(async entry => await resolvePromises(entry)));
+        return Promise.all(value.map(entry => resolvePromises(entry)));
     
     if (typeof value === 'object') {
-        for (let key in value)
-            value[key] = await resolvePromises(value[key]);
+        const keys = Object.keys(value);
+        console.log(value);
+
+        return Promise.all(keys.map(key => resolvePromises(value[key])))
+            .then(properties => {
+                let obj = {};
+                keys.forEach((key, i) => {
+                    obj[key] = properties[i];
+                });
+                return obj;
+            });
+
     }
 
-    return value;
+    return Promise.resolve(value);
 };
 
-const parseImports = async (source, keyword) => {
-    let deps = [];
+const parseImports = (source, keyword) => {
+    return parseRootImports(source, keyword).then(subResult => {
+        let deps = [];
+        deps.push(...subResult.deps);
+        source = subResult.lines.join('\n');
 
-    const subResult = await parseRootImports(source, keyword);
-    deps.push(...subResult.deps);
-    source = subResult.lines.join('\n');
+        const type = new YAML.Type('!' + keyword, {
+            kind: 'scalar',
+            construct: uri => {
+                const location = path.resolve(uri);
+                return readFile(location)
+                    .then(data => parseImports(data, keyword))
+                    .then(result => {
+                        deps.push(location, ...result.deps);
+                        return result.obj;
+                    });
+            }
+        });
 
-    const type = new YAML.Type('!' + keyword, {
-        kind: 'scalar',
-        construct: async uri => {
-            const location  = path.resolve(uri);
-            const data      = await readFile(location);
-            const subResult = await parseImports(data, keyword);
+        const schema = YAML.Schema.create([type]);
 
-            deps.push(location, ...subResult.deps);
-            return subResult.obj;
-        }
+        // Since the construct function in our type import is async we
+        // are left with nested promises, these have to be resolved.
+        return resolvePromises(YAML.safeLoad(source, { schema })).then(obj => ({ obj, deps }));
     });
-
-    let obj = YAML.safeLoad(source, {
-        schema: YAML.Schema.create([type])
-    });
-
-    // Since the construct function in our type is async we are
-    // left with promises, these have to be resolved.
-    obj = await resolvePromises(obj);
-
-    return { obj, deps };
 };
 
 function load(source) {
     this.cacheable && this.cacheable();
-    const options = Object.assign({}, defaultOptions, utils.getOptions(this));
+    const options  = Object.assign({}, defaultOptions, utils.getOptions(this));
     const callback = this.async();
 
     parseImports(source, options.keyword)
         .then(({ obj, deps }) => {
             for (let dep of deps)
                 this.addDependency(dep);
+
             callback(null, YAML.safeDump(obj))
         })
         .catch(err => {
