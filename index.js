@@ -123,10 +123,7 @@ function load(source) {
                 callback(null, obj)
             else {
                 let value = JSON.stringify(obj);
-                callback(null, this.version && this.version >= 2
-                    ? `export default ${value};`
-                    : `module.exports = ${value};`
-                );
+                callback(null, `module.exports = ${value};`);
             }
         })
         .catch(err => {
