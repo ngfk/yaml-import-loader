@@ -72,10 +72,8 @@ const resolvePromises = (value) => {
 };
 
 const parseImports = (source, keyword, path) => {
-    return parseRootImports(source, keyword, path).then(subResult => {
-        let deps = [];
-        deps.push(...subResult.deps);
-        source = subResult.lines.join('\n');
+    return parseRootImports(source, keyword, path).then(({ lines, deps }) => {
+        source = lines.join('\n');
 
         const type = new YAML.Type('!' + keyword, {
             kind: 'scalar',
