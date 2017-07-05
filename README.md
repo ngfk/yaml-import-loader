@@ -43,9 +43,9 @@ hello: world
 }
 ```
 
-## Example
+## Examples
 
-### Webpack config
+### Runtime YAML loading
 ```javascript
 {
     module: {
@@ -96,3 +96,6 @@ console.log(JSON.stringify(yaml, undefined, 4));
 //     ]
 // }
 ```
+
+### YAML to JSON file
+
