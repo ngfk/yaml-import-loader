@@ -80,7 +80,7 @@ hello: world!
 }
 ```
 ```javascript
-var yaml = require('./main.yml');
+let yaml = require('./main.yml');
 
 console.log(yaml.key1.hello);
 // world
