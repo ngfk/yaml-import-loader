@@ -4,7 +4,9 @@ const YAML  = require('js-yaml');
 const utils = require('loader-utils');
 
 const defaultOptions = {
-    keyword: 'import'
+    importRoot: false,
+    importNested: true,
+    importKeyword: 'import'
 };
 
 const read = (file) => {
@@ -18,7 +20,7 @@ const read = (file) => {
     });
 };
 
-const parseRootImports = (source, keyword, path) => {
+const parseRootImports = (source, path, options) => {
     let oldLines = source.split('\n');
     let newLines = [];
     let deps = [];
@@ -26,14 +28,14 @@ const parseRootImports = (source, keyword, path) => {
 
     for (let i = 0; i < oldLines.length; i++) {
         const line  = oldLines[i];
-        const regex = new RegExp(`^!${keyword}\\s+['"]?(.*\\.ya?ml)['"]?\\s*$`);
+        const regex = new RegExp(`^!${options.importKeyword}\\s+['"]?(.*\\.ya?ml)['"]?\\s*$`);
         const match = line.match(regex);
         
         if (match) {
             const filePath = join(path, match[1]);
             promises.push(
                 read(filePath)
-                    .then(data => parseRootImports(data, keyword, dirname(filePath)))
+                    .then(data => parseRootImports(data, dirname(filePath), options))
                     .then(result => {
                         deps.push(filePath, ...result.deps);
                         newLines.push(...result.lines);
@@ -71,24 +73,30 @@ const resolvePromises = (value) => {
     return Promise.resolve(value);
 };
 
-const parseImports = (source, keyword, path) => {
-    return parseRootImports(source, keyword, path).then(({ lines, deps }) => {
-        source = lines.join('\n');
+const parseImports = (source, path, options) => {
+    let root = options.importRoot
+        ? parseRootImports(source, path, options).then(({ lines, deps }) => ({ source: lines.join('\n'), deps }))
+        : Promise.resolve({ source, deps: [] });
 
-        const type = new YAML.Type('!' + keyword, {
-            kind: 'scalar',
-            construct: uri => {
-                const filePath = join(path, uri);
-                return read(filePath)
-                    .then(data => parseImports(data, keyword, dirname(filePath)))
-                    .then(result => {
-                        deps.push(filePath, ...result.deps);
-                        return result.obj;
-                    });
-            }
-        });
+    return root.then(({ source, deps }) => {
+        let types = [];
 
-        const schema = YAML.Schema.create([type]);
+        if (options.importNested) {
+            types.push(new YAML.Type('!' + options.importKeyword, {
+                kind: 'scalar',
+                construct: uri => {
+                    const filePath = join(path, uri);
+                    return read(filePath)
+                        .then(data => parseImports(data, dirname(filePath), options))
+                        .then(result => {
+                            deps.push(filePath, ...result.deps);
+                            return result.obj;
+                        });
+                }
+            }));
+        }
+
+        const schema = YAML.Schema.create(types);
 
         // Since the construct function in our type import is async we
         // are left with nested promises, these have to be resolved.
@@ -98,15 +106,16 @@ const parseImports = (source, keyword, path) => {
 
 function load(source) {
     this.cacheable && this.cacheable();
-    const options  = Object.assign({}, defaultOptions, utils.getOptions(this));
     const callback = this.async();
 
-    parseImports(source, options.keyword, dirname(this.resourcePath))
+    let options = Object.assign({}, defaultOptions, utils.getOptions(this));
+
+    parseImports(source, dirname(this.resourcePath), options)
         .then(({ obj, deps }) => {
             for (let dep of deps)
                 this.addDependency(dep);
 
-            callback(null, YAML.safeDump(obj))
+            callback(null, YAML.safeDump(obj));
         })
         .catch(err => {
             this.emitError(err);
