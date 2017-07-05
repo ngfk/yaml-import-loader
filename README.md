@@ -15,36 +15,33 @@ external_arr: !import ./file3.yml
 ```yaml
 # file1.yml
 
-todo: import me
+file1: root import
 ```
 
 ```yaml
 # file2.yml
 
+file2: map
 key: value
 ```
 
 ```yaml
 # file3.yml
 
-- a
-- b
-- c
+- file3
+- array
 ```
 
 ```javascript
-var file = require("json-loader!yaml-loader!yaml-import-loader!./main.yml");
+var file = require("yaml-import-loader!./main.yml");
 
-console.log(JSON.stringify(file, undefined, 4));
-// {
-//     "hello": "world!",
-//     "external_map": {
-//         "key": "value"
-//     },
-//     "external_arr": [
-//         "a",
-//         "b",
-//         "c"
-//     ]
-// }
+console.log(file);
+// file1: root import
+// hello: world!
+// external_map:
+//   file2: map
+//   key: value
+// external_arr:
+//   - file3
+//   - array
 ```
