@@ -56,7 +56,6 @@ const resolvePromises = (value) => {
     
     if (typeof value === 'object') {
         const keys = Object.keys(value);
-        console.log(value);
 
         return Promise.all(keys.map(key => resolvePromises(value[key])))
             .then(properties => {
