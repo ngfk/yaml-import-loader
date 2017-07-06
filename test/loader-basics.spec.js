@@ -52,11 +52,11 @@ describe('loader basics', () => {
         return utils.context('./yaml/mixed.yml', { output: 'raw', importRoot: true })
             .then(context => utils.load(context, loader))
             .then(({ result, deps }) => {
-                expect(deps).contains(
-                    utils.resolve('./yaml/nested.yml'),
-                    utils.resolve('./yaml/array.yml'),
-                    utils.resolve('./yaml/plain.yml'),
-                );
+                expect(deps.length).eq(3);
+                expect(deps).contain(utils.resolve('./yaml/nested.yml'));
+                expect(deps).contain(utils.resolve('./yaml/array.yml'));
+                expect(deps).contain(utils.resolve('./yaml/plain.yml'));
+                
                 expect(result).eql({
                     value: {
                         hello: 'world',
@@ -69,5 +69,21 @@ describe('loader basics', () => {
                     ]
                 });
             });
-    })
+    });
+
+    it('allow path navigation', () => {
+        return utils.context('./yaml/folder/path.yml', { output: 'raw', importRoot: true })
+            .then(context => utils.load(context, loader))
+            .then(({ result, deps }) => {
+                expect(deps.length).eq(3);
+                expect(deps).contain(utils.resolve('./yaml/folder/key/key.yml'));
+                expect(deps).contain(utils.resolve('./yaml/folder/key/value.yml'));
+                expect(deps).contain(utils.resolve('./yaml/folder/value.yml'));
+
+                expect(result).eql({
+                    key1: 'value1',
+                    key2: 'value2'
+                });
+            });
+    });
 });
