@@ -38,6 +38,7 @@ const parseRootImports = (source, path, options) => {
                 read(filePath)
                     .then(data => parseRootImports(data, dirname(filePath), options))
                     .then(result => {
+                        Object.assign(deps, result.deps);
                         deps[filePath] = true;
                         newLines.push(...result.lines);
                     })
@@ -90,6 +91,7 @@ const parseImports = (source, path, options) => {
                     return read(filePath)
                         .then(data => parseImports(data, dirname(filePath), options))
                         .then(result => {
+                            Object.assign(deps, result.deps);
                             deps[filePath] = true;
                             return result.obj;
                         });
@@ -121,10 +123,8 @@ function load(source) {
                 callback(null, YAML.safeDump(obj));
             else if (options.output === 'raw')
                 callback(null, obj)
-            else {
-                let value = JSON.stringify(obj);
-                callback(null, `module.exports = ${value};`);
-            }
+            else
+                callback(null, `module.exports = ${JSON.stringify(obj)};`);
         })
         .catch(err => {
             this.emitError(err);
