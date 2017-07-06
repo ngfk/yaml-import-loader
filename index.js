@@ -1,4 +1,4 @@
-const { join, dirname } = require('path');
+const { join, dirname, extname } = require('path');
 const { readFile } = require('fs');
 const YAML  = require('js-yaml');
 const utils = require('loader-utils');
@@ -11,12 +11,17 @@ const defaultOptions = {
 };
 
 const read = (file) => {
+    if (!extname(file)) {
+        return read(file + '.yml')
+            .catch(_ => read(file + '.yaml'));
+    }
+
     return new Promise((resolve, reject) => {
         readFile(file, (err, data) => {
             if (err)
                 reject(err);
             else
-                resolve(data.toString());
+                resolve({ file, data: data.toString() });
         });
     });
 };
@@ -33,13 +38,14 @@ const parseRootImports = (source, path, options) => {
         const match = line.match(regex);
         
         if (match) {
-            const filePath = join(path, match[1]);
             promises.push(
-                read(filePath)
-                    .then(data => parseRootImports(data, dirname(filePath), options))
+                read(join(path, match[1]))
+                    .then(({ file, data }) => {
+                        deps[file] = true;
+                        return parseRootImports(data, dirname(file), options);
+                    })
                     .then(result => {
                         Object.assign(deps, result.deps);
-                        deps[filePath] = true;
                         newLines.push(...result.lines);
                     })
             );
@@ -87,12 +93,13 @@ const parseImports = (source, path, options) => {
             types.push(new YAML.Type('!' + options.importKeyword, {
                 kind: 'scalar',
                 construct: uri => {
-                    const filePath = join(path, uri);
-                    return read(filePath)
-                        .then(data => parseImports(data, dirname(filePath), options))
+                    return read(join(path, uri))
+                        .then(({ file, data }) => {
+                            deps[file] = true;
+                            return parseImports(data, dirname(file), options);
+                        })
                         .then(result => {
                             Object.assign(deps, result.deps);
-                            deps[filePath] = true;
                             return result.obj;
                         });
                 }
