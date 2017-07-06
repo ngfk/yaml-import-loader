@@ -33,13 +33,13 @@ hello: world
 ### JSON output
 ```json
 {
-    "key1": {
-        "hello": "world"
-    },
-    "key2": [
-        "elem1",
-        "elem2"
-    ]
+  "key1": {
+   "hello": "world"
+  },
+  "key2": [
+    "elem1",
+    "elem2"
+  ]
 }
 ```
 
@@ -48,35 +48,35 @@ hello: world
 ### Runtime YAML loading
 ```javascript
 {
-    module: {
-        rules: [
-            {
-                test: /\.ya?ml$/,
-                use: {
-                    loader: 'yaml-import-loader'
+  module: {
+    rules: [
+      {
+        test: /\.ya?ml$/,
+        use: {
+          loader: 'yaml-import-loader'
+          
+          // The options below are the default options
+          options: {
+            // Allows !import <file> without key. When using this the file
+            // contents will simply be inserted at the import location.
+            importRoot: false,
 
-                    // The options below are the default options
-                    options: {
-                        // Allows !import <file> without key. When using this the file
-                        // contents will simply be inserted at the import location.
-                        importRoot: false,
+            // Allows !import <file> in general
+            importNested: true,
 
-                        // Allows !import <file> in general
-                        importNested: true,
+            // The import keyword !${keyword} <file>
+            importKeyword: 'import',
 
-                        // The import keyword !${keyword} <file>
-                        importKeyword: 'import',
-
-                        // Output type. Can be 'object', 'json', or 'yaml'
-                        // 'object' -> javascript object
-                        // 'json'   -> stringified json
-                        // 'yaml'   -> stringified yaml
-                        output: 'object'
-                    }
-                }
-            },
-        ]
-    }
+            // Output type. Can be 'object', 'json', or 'yaml'
+            // 'object' -> javascript object
+            // 'json'   -> stringified json
+            // 'yaml'   -> stringified yaml
+            output: 'object'
+          }
+        }
+      },
+    ]
+  }
 }
 ```
 ```javascript
@@ -87,17 +87,16 @@ console.log(yaml.key1.hello);
 
 console.log(JSON.stringify(yaml, undefined, 4));
 // {
-//     "key1": {
-//         "hello": "world"
-//     },
-//     "key2": [
-//         "elem1",
-//         "elem2"
-//     ]
+//   "key1": {
+//     "hello": "world"
+//   },
+//   "key2": [
+//     "elem1",
+//     "elem2"
+//   ]
 // }
 ```
 
 ### Projects
 
 * [ngx-translate-yaml](https://github.com/ngfk/ngx-translate-yaml)
-
