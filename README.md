@@ -14,34 +14,59 @@ npm install --save-dev yaml-import-loader
 
 ## Usage
 
-### YAML input
+### Input
+
+#### main.yml
 ```yaml
-# main.yml
+# Root import
+# Note: this only works if importRoot is set to true
+!import ./root.yml
+!import ./oldskool.json
+
+# Nested imports
 key1: !import ./hello_world.yml
 key2: !import ./array.yml
+key3: !import ./oldskool.json
 ```
 
+#### root.yml
 ```yaml
-# hello_world.yml
+root: true
+```
+
+#### hello_world.yml
+```yaml
 hello: world
 ```
 
+#### array.yml
 ```yaml
-# array.yml
 - elem1
 - elem2
+```
+
+#### oldskool.json
+```json
+{
+  "jsonKey": "jsonValue"
+}
 ```
 
 ### JSON output
 ```json
 {
+  "root": true,
+  "jsonKey": "jsonValue",  
   "key1": {
    "hello": "world"
   },
   "key2": [
     "elem1",
     "elem2"
-  ]
+  ],
+  "key3": {
+    "jsonKey": "jsonValue"
+  }
 }
 ```
 
