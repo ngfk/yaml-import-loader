@@ -13,6 +13,7 @@ npm install --save-dev yaml-import-loader
 ```
 
 ## Usage
+
 ### YAML input
 ```yaml
 # main.yml
@@ -30,6 +31,7 @@ hello: world
 - elem1
 - elem2
 ```
+
 ### JSON output
 ```json
 {
@@ -57,18 +59,19 @@ hello: world
           
           // The options below are the default options
           options: {
-            // Allows !import <file> without key. When using this the file
-            // contents will simply be inserted at the import location.
+            // Allows !import <file> without key. When using this the targets
+            // content will simply be inserted at the import location.
             importRoot: false,
 
-            // Allows !import <file> in general
+            // Allows !import <file> with key. Settings this and importRoot
+            // to false will create a regular yaml-loader.
             importNested: true,
 
             // The import keyword !${keyword} <file>
             importKeyword: 'import',
 
             // Output type. Can be 'object', 'json', or 'yaml'
-            // 'object' -> javascript object
+            // 'object' -> exported js object
             // 'json'   -> stringified json
             // 'yaml'   -> stringified yaml
             output: 'object'
