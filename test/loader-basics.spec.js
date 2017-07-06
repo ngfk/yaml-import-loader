@@ -52,14 +52,12 @@ describe('loader basics', () => {
         return utils.context('./yaml/mixed.yml', { output: 'raw', importRoot: true })
             .then(context => utils.load(context, loader))
             .then(({ result, deps }) => {
-                expect(deps).eql([
-                    utils.resolve('./yaml/plain.yml'),
+                expect(deps).contains(
                     utils.resolve('./yaml/nested.yml'),
                     utils.resolve('./yaml/array.yml'),
-                ]);
+                    utils.resolve('./yaml/plain.yml'),
+                );
                 expect(result).eql({
-                    hello: 'world',
-                    test: 'a',
                     value: {
                         hello: 'world',
                         test: 'a'
