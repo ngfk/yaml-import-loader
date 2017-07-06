@@ -101,7 +101,7 @@ const parseImports = (source, path, options) => {
 
         const schema = YAML.Schema.create(types);
 
-        // Since the construct function in our type import is async we
+        // Since the construct function in our import type is async we
         // are left with nested promises, these have to be resolved.
         return resolvePromises(YAML.safeLoad(source, { schema })).then(obj => ({ obj, deps }));
     });
