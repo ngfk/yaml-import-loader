@@ -34,7 +34,7 @@ const parseRootImports = (source, path, options) => {
 
     for (let i = 0; i < oldLines.length; i++) {
         const line  = oldLines[i];
-        const regex = new RegExp(`^!${options.importKeyword}\\s+['"]?(.*\\.ya?ml)['"]?\\s*$`);
+        const regex = new RegExp(`^!${options.importKeyword}\\s+['"]?(.*)(\\.ya?ml|\\.json)?['"]?\\s*$`);
         const match = line.match(regex);
         
         if (match) {
@@ -42,6 +42,12 @@ const parseRootImports = (source, path, options) => {
                 read(join(path, match[1]))
                     .then(({ file, data }) => {
                         deps[file] = true;
+                        if (file.endsWith('.json')) {
+                            return {
+                                lines: YAML.safeDump(JSON.parse(data)).split('\n'),
+                                deps: {}
+                            };
+                        }
                         return parseRootImports(data, dirname(file), options);
                     })
                     .then(result => {

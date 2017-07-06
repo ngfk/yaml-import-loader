@@ -87,6 +87,29 @@ describe('loader basics', () => {
             });
     });
 
+    it('allow json import', () => {
+        return utils.context('./yaml/json.yml', { output: 'raw', importRoot: true })
+            .then(context => utils.load(context, loader))
+            .then(({ result, deps }) => {
+                expect(deps.length).eq(2);
+                expect(deps).contain(utils.resolve('./json/map.json'));
+                expect(deps).contain(utils.resolve('./json/array.json'));
+
+                expect(result).eql({
+                    jsonKey1: 'jsonValue1',
+                    jsonKey2: 'jsonValue2',
+                    nested: {
+                        jsonKey1: 'jsonValue1',
+                        jsonKey2: 'jsonValue2'
+                    },
+                    array: [
+                        'elem1',
+                        'elem2'
+                    ]
+                });
+            });
+    });
+
     it('auto append yml extension', () => {
         return utils.context('./yaml/yml.yaml', { output: 'raw', importRoot: true })
             .then(context => utils.load(context, loader))

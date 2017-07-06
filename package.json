@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha test/**/*.spec.js",
-    "test:watch": "mocha --watch --watch-extensions js,yml,yaml test/**/*.spec.js",
+    "test:watch": "mocha --watch --watch-extensions js,yml,yaml,json test/**/*.spec.js",
     "preversion": "npm run test",
     "prepublishOnly": "npm run preversion"
   },
