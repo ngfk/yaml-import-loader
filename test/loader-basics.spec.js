@@ -111,7 +111,7 @@ describe('loader basics', () => {
     });
 
     it('auto append yml extension', () => {
-        return utils.context('./yaml/yml.yaml', { output: 'raw', importRoot: true })
+        return utils.context('./yaml/auto_yml.yaml', { output: 'raw', importRoot: true })
             .then(context => utils.load(context, loader))
             .then(({ result, deps }) => {
                 expect(deps.length).eq(1);
@@ -125,17 +125,31 @@ describe('loader basics', () => {
     });
 
     it('auto append yaml extension', () => {
-        return utils.context('./yaml/yaml.yml', { output: 'raw', importRoot: true })
+        return utils.context('./yaml/auto_yaml.yml', { output: 'raw', importRoot: true })
             .then(context => utils.load(context, loader))
             .then(({ result, deps }) => {
                 expect(deps.length).eq(2);
-                expect(deps).contain(utils.resolve('./yaml/yml.yaml'));
+                expect(deps).contain(utils.resolve('./yaml/auto_yml.yaml'));
                 expect(deps).contain(utils.resolve('./yaml/plain.yml'));
 
                 expect(result).eql({
                     hello: 'world',
                     test: 'a'
                 });
+            });
+    });
+
+    it('auto append json extension', () => {
+        return utils.context('./yaml/auto_json.yml', { output: 'raw', importRoot: true })
+            .then(context => utils.load(context, loader))
+            .then(({ result, deps }) => {
+                expect(deps.length).eq(1);
+                expect(deps).contain(utils.resolve('./json/array.json'));
+
+                expect(result).a('array');
+                expect(result.length).eq(2);
+                expect(result).contain('elem1');
+                expect(result).contain('elem2');
             });
     });
 });

@@ -10,10 +10,14 @@ const defaultOptions = {
     output: 'object'
 };
 
-const read = (file) => {
-    if (!extname(file)) {
-        return read(file + '.yml')
-            .catch(_ => read(file + '.yaml'));
+const read = (file, ext = true) => {
+    if (ext && !extname(file)) {
+        let error;
+        return read(file, false).catch(err => error = err)
+            .then(_ => read(file + '.yml'))
+            .catch(_ => read(file + '.yaml'))
+            .catch(_ => read(file + '.json'))
+            .catch(_ => Promise.reject(error));
     }
 
     return new Promise((resolve, reject) => {
