@@ -7,6 +7,7 @@ const defaultOptions = {
     importRoot: false,
     importNested: true,
     importKeyword: 'import',
+    importRawKeyword: 'import-raw',
     output: 'object'
 };
 
@@ -36,13 +37,14 @@ const parseRootImports = (source, path, options) => {
     let deps = {};
     let promises = [];
 
+    const { importKeyword, importRawKeyword } = options;
+    const regex = new RegExp(`^!(${importKeyword}|${importRawKeyword})\\s+['"]?(.*)(\\.ya?ml|\\.json)?['"]?\\s*$`);
     for (let i = 0; i < oldLines.length; i++) {
         const line  = oldLines[i];
-        const regex = new RegExp(`^!${options.importKeyword}\\s+['"]?(.*)(\\.ya?ml|\\.json)?['"]?\\s*$`);
         const match = line.match(regex);
         
         if (match) {
-            let promise = read(join(path, match[1]))
+            let promise = read(join(path, match[2]))
                 .then(({ file, data }) => {
                     deps[file] = true;
 
@@ -112,6 +114,19 @@ const parseImports = (source, path, options) => {
                         .then(result => {
                             Object.assign(deps, result.deps);
                             return result.obj;
+                        });
+                }
+            }));
+
+            types.push(new YAML.Type('!' + options.importRawKeyword, {
+                kind: 'scalar',
+                construct: uri => {
+                    containsPromises = true;
+
+                    return read(join(path, uri))
+                        .then(({ file, data }) => {
+                            deps[file] = true;
+                            return data;
                         });
                 }
             }));

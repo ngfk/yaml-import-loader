@@ -1,6 +1,6 @@
 # yaml-import-loader
 
-YAML loader for [Webpack](https://webpack.js.org) supporting the `!import <file>` type to include different YAML files.
+YAML loader for [Webpack](https://webpack.js.org) supporting the `!import <file>` type to include different YAML files, and `!import-raw <file>` to include the raw contents of a file.
 
 [![NPM version](https://img.shields.io/npm/v/yaml-import-loader.svg)](https://www.npmjs.com/package/yaml-import-loader)
 [![Downloads](https://img.shields.io/npm/dt/yaml-import-loader.svg)](https://www.npmjs.com/package/yaml-import-loader)
@@ -26,6 +26,7 @@ npm install --save-dev yaml-import-loader
 key1: !import ./hello_world.yml
 key2: !import ./array.yml
 key3: !import ./old.json
+html: !import-raw ./plain.html
 
 ### ./hello_world.yml
 hello: world
@@ -38,6 +39,13 @@ hello: world
 {
   "jsonKey": "jsonValue"
 }
+```
+```html
+<!-- plain.html -->
+<div>Hey!</div>
+<p>
+  Some paragraph...
+</p>
 ```
 
 ### JSON output
@@ -54,7 +62,8 @@ hello: world
   ],
   "key3": {
     "jsonKey": "jsonValue"
-  }
+  },
+  "html": "<div>Hey!</div>\n<p>\n  Some paragraph...\n</p>\n"
 }
 ```
 
@@ -80,8 +89,11 @@ hello: world
             // false for a regular yaml-loader.
             importNested: true,
 
-            // The import keyword: `!${importKeyword} <file>`
+            // The import keyword: `!${importKeyword} <file>` for yaml/json contents
             importKeyword: 'import',
+
+            // The import-raw keyword: `!${importKeyword} <file>` for raw file contents
+            importRawKeyword: 'import-raw',
 
             // Output type. Can be 'object', 'json', or 'yaml'
             // 'object' -> exported js object
@@ -118,7 +130,8 @@ console.log(JSON.stringify(yaml, undefined, 4));
 //   ],
 //   "key3": {
 //     "jsonKey": "jsonValue"
-//   }
+//   },
+//   "html": "<div>Hey!</div>\n<p>\n  Some paragraph...\n</p>\n"
 // }
 ```
 

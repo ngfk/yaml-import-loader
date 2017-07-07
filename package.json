@@ -1,9 +1,10 @@
 {
   "name": "yaml-import-loader",
   "version": "1.0.5",
-  "description": "YAML loader for Webpack supporting the '!import <file>' type to include different YAML files.",
+  "description": "YAML loader for Webpack supporting the '!import <file>' type to include different YAML files, and '!import-raw <file>' to include the raw contents of a file.",
   "main": "index.js",
   "scripts": {
+    "start": "npm run test:watch",
     "test": "mocha test/**/*.spec.js",
     "test:watch": "mocha --watch --watch-extensions js,yml,yaml,json test/**/*.spec.js",
     "preversion": "npm run test",
