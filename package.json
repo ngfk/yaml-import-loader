@@ -1,7 +1,7 @@
 {
   "name": "yaml-import-loader",
   "version": "1.0.5",
-  "description": "YAML loader for Webpack supporting the `!import <file>` type to include different YAML files.",
+  "description": "YAML loader for Webpack supporting the '!import <file>' type to include different YAML files.",
   "main": "index.js",
   "scripts": {
     "test": "mocha test/**/*.spec.js",
@@ -14,6 +14,7 @@
     "url": "git+https://github.com/ngfk/yaml-import-loader.git"
   },
   "keywords": [
+    "yml",
     "yaml",
     "import",
     "loader",
