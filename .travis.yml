@@ -1,9 +1,9 @@
 language: node_js
 
 node_js:
-  - "node"
-  - "7"
-  - "6"
+  - 'node'
+  - '7'
+  - '6'
 
 install:
   - npm install
@@ -14,7 +14,7 @@ script:
 
 cache:
   directories:
-    - "node_modules"
+    - 'node_modules'
 
 notifications:
   email:
