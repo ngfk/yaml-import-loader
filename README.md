@@ -1,9 +1,8 @@
-
 # yaml-import-loader
 
-Webpack loader for yaml files supporting the `!import` type to combine different yaml files.
+YAML loader for [Webpack](https://webpack.js.org) supporting the `!import <file>` type to include different YAML files.
 
-[![npm version](https://img.shields.io/npm/v/yaml-import-loader.svg)](https://www.npmjs.com/package/yaml-import-loader)
+[![NPM version](https://img.shields.io/npm/v/yaml-import-loader.svg)](https://www.npmjs.com/package/yaml-import-loader)
 [![Downloads](https://img.shields.io/npm/dt/yaml-import-loader.svg)](https://www.npmjs.com/package/yaml-import-loader)
 [![Build Status](https://travis-ci.org/ngfk/yaml-import-loader.svg?branch=master)](https://travis-ci.org/ngfk/yaml-import-loader)
 
@@ -14,39 +13,28 @@ npm install --save-dev yaml-import-loader
 
 ## Usage
 
-### Input
-
-#### main.yml
+### Input files
 ```yaml
+### ./main.yml
+
 # Root import
 # Note: this only works if importRoot is set to true
-!import ./root.yml
-!import ./oldskool.json
+!import ./hello_world.yml
+!import ./old.json
 
 # Nested imports
 key1: !import ./hello_world.yml
 key2: !import ./array.yml
-key3: !import ./oldskool.json
-```
+key3: !import ./old.json
 
-#### root.yml
-```yaml
-root: true
-```
-
-#### hello_world.yml
-```yaml
+### ./hello_world.yml
 hello: world
-```
 
-#### array.yml
-```yaml
+### ./array.yml
 - elem1
 - elem2
-```
 
-#### oldskool.json
-```json
+### ./old.json
 {
   "jsonKey": "jsonValue"
 }
@@ -55,7 +43,7 @@ hello: world
 ### JSON output
 ```json
 {
-  "root": true,
+  "hello": "world",
   "jsonKey": "jsonValue",  
   "key1": {
    "hello": "world"
@@ -70,9 +58,9 @@ hello: world
 }
 ```
 
-## Examples
+## Configuration
 
-### Runtime YAML loading
+### webpack.config.js
 ```javascript
 {
   module: {
@@ -84,15 +72,15 @@ hello: world
           
           // The options below are the default options
           options: {
-            // Allows !import <file> without key. When using this the targets
-            // content will simply be inserted at the import location.
+            // Allows !import <file> without key. When using this the
+            // targets file content will be inserted at the import location.
             importRoot: false,
 
-            // Allows !import <file> with key. Settings this and importRoot
-            // to false will create a regular yaml-loader.
+            // Allows !import <file> with key. Set this and importRoot to
+            // false for a regular yaml-loader.
             importNested: true,
 
-            // The import keyword !${keyword} <file>
+            // The import keyword: `!${importKeyword} <file>`
             importKeyword: 'import',
 
             // Output type. Can be 'object', 'json', or 'yaml'
@@ -107,24 +95,33 @@ hello: world
   }
 }
 ```
-```javascript
-let yaml = require('./main.yml');
 
-console.log(yaml.key1.hello);
+## Use cases
+
+### Basic usage
+```javascript
+const yaml = require('./main.yml');
+
+console.log(yaml.hello);
 // world
 
 console.log(JSON.stringify(yaml, undefined, 4));
 // {
+//   "hello": "world",
+//   "jsonKey": "jsonValue",  
 //   "key1": {
-//     "hello": "world"
+//    "hello": "world"
 //   },
 //   "key2": [
 //     "elem1",
 //     "elem2"
-//   ]
+//   ],
+//   "key3": {
+//     "jsonKey": "jsonValue"
+//   }
 // }
 ```
 
-### Projects
-
-* [ngx-translate-yaml](https://github.com/ngfk/ngx-translate-yaml)
+### Examples
+* Use ngx-translate, with yaml files, without a runtime loader.  
+[ngx-translate-yaml](https://github.com/ngfk/ngx-translate-yaml)
