@@ -98,11 +98,14 @@ const parseImports = (source, path, options) => {
 
     return root.then(({ source, deps }) => {
         let types = [];
+        let containsPromises = false
 
         if (options.importNested) {
             types.push(new YAML.Type('!' + options.importKeyword, {
                 kind: 'scalar',
                 construct: uri => {
+                    containsPromises = true;
+
                     return read(join(path, uri))
                         .then(({ file, data }) => {
                             deps[file] = true;
@@ -117,10 +120,13 @@ const parseImports = (source, path, options) => {
         }
 
         const schema = YAML.Schema.create(types);
+        const parsed = YAML.safeLoad(source, { schema });
 
         // Since the construct function in our import type is async we
-        // are left with nested promises, these have to be resolved.
-        return resolvePromises(YAML.safeLoad(source, { schema })).then(obj => ({ obj, deps }));
+        // could have nested promises, these have to be resolved.
+        return containsPromises
+            ? resolvePromises(parsed).then(obj => ({ obj, deps }))
+            : Promise.resolve({ obj: parsed, deps })
     });
 };
 
