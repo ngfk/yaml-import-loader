@@ -42,26 +42,24 @@ const parseRootImports = (source, path, options) => {
         const match = line.match(regex);
         
         if (match) {
-            promises.push(
-                read(join(path, match[1]))
-                    .then(({ file, data }) => {
-                        deps[file] = true;
-                        if (file.endsWith('.json')) {
-                            return {
-                                lines: YAML.safeDump(JSON.parse(data)).split('\n'),
-                                deps: {}
-                            };
-                        }
-                        return parseRootImports(data, dirname(file), options);
-                    })
-                    .then(result => {
-                        Object.assign(deps, result.deps);
-                        newLines.push(...result.lines);
-                    })
-            );
+            let promise = read(join(path, match[1]))
+                .then(({ file, data }) => {
+                    deps[file] = true;
+
+                    return file.endsWith('.json')
+                        ? { obj: JSON.parse(data), deps: {} }
+                        : parseImports(data, dirname(file), options);
+                })
+                .then(result => {
+                    Object.assign(deps, result.deps);
+                    newLines.push(...YAML.safeDump(result.obj).split('\n'));
+                });
+
+            promises.push(promise);
+            continue;
         }
-        else
-            newLines.push(line);
+        
+        newLines.push(line);
     }
 
     return Promise.all(promises).then(_ => ({ lines: newLines, deps }));
