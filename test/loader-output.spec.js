@@ -1,4 +1,3 @@
-const path = require('path');
 const { expect } = require('chai');
 const utils = require('./utils');
 const loader = require('../index');
