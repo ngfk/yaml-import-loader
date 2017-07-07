@@ -1,0 +1,8 @@
+
+from: &from
+    username: me
+    email: me@example.com
+
+to:
+  <<: *from
+  username: spoofed

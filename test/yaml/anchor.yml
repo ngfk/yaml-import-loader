@@ -1,0 +1,8 @@
+
+from: &from
+    username: me
+    email: &email me@example.com
+
+to: *from
+
+cc: *email

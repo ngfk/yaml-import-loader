@@ -1,0 +1,30 @@
+
+street1: |
+    123 Tornado Alley
+    Suite 16
+
+street2: |1+
+ 123 Tornado Alley
+ Suite 16
+
+street3: |-
+    123 Tornado Alley
+    Suite 16
+
+specialDelivery1: >
+    Follow the Yellow Brick
+    Road to the Emerald City.
+    Pay no attention to the
+    man behind the curtain.
+
+specialDelivery2: >+
+    Follow the Yellow Brick
+    Road to the Emerald City.
+    Pay no attention to the
+    man behind the curtain.
+
+specialDelivery3: >8-
+        Follow the Yellow Brick
+        Road to the Emerald City.
+        Pay no attention to the
+        man behind the curtain.
