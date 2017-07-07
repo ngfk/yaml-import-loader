@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/ngfk/yaml-import-loader#readme",
   "dependencies": {
-    "js-yaml": "^3.5.2",
+    "js-yaml": "^3.8.4",
     "loader-utils": "^1.1.0"
   },
   "files": [
