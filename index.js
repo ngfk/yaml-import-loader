@@ -74,7 +74,7 @@ const resolvePromises = (value) => {
     if (value instanceof Array)
         return Promise.all(value.map(entry => resolvePromises(entry)));
     
-    if (typeof value === 'object') {
+    if (typeof value === 'object' && value !== null) {
         const keys = Object.keys(value);
 
         return Promise.all(keys.map(key => resolvePromises(value[key])))
