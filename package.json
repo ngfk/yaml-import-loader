@@ -1,6 +1,6 @@
 {
   "name": "yaml-import-loader",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "YAML loader for Webpack supporting the `!import <file>` type to include different YAML files.",
   "main": "index.js",
   "scripts": {
