@@ -97,10 +97,7 @@ hello: world
             // raw file contents
             importRawKeyword: 'import-raw',
 
-            // Allow adding custom types, for details see the js-yaml wiki:
-            // https://github.com/nodeca/js-yaml/wiki/Custom-types
-            // Or look at the 'allow custom types' & 'allow custom async types' test:
-            // https://github.com/ngfk/yaml-import-loader/blob/master/test/loader-options.spec.ts
+            // Allows adding custom types, for details see below.
             types: [],
 
             // Output type. Can be 'object', 'json', or 'yaml'
@@ -114,6 +111,39 @@ hello: world
     ]
   }
 }
+```
+
+### Custom types
+
+This loader internally uses [js-yaml](https://github.com/ngfk/js-yaml) as parser check their [wiki](https://github.com/nodeca/js-yaml/wiki/Custom-types) for custom type examples. The types array accepts `Type` objects or a function returning a `Type`. If you create your type in a function you will get some context in the first parameter, with this context you can instruct `yaml-import-loader` to resolve promises.
+
+```javascript
+const { Type } = require('js-yaml');
+
+let types = [
+  ctx => new Type('!async', {
+    kind: 'mapping',
+    resolve: (data) => {
+      return data !== null && typeof data.delay === 'number';
+    },
+    construct: (data) => {
+      ctx.resolveAsync = true;
+      ctx.dependencies.add(data.watchThisFile);
+
+      return new Promise(resolve => {
+        setTimeout(() => resolve(data.result), data.delay);
+      });
+    },
+    instanceOf: String
+  })
+];
+```
+
+```yaml
+result: !async
+  delay: 1000
+  result: 'I will be resolved async after 1 second!'
+  watchThisFile: './some/random/file/to/add/to/webpack/watch'
 ```
 
 ## Use cases
