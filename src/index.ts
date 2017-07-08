@@ -8,7 +8,7 @@ export interface Options {
     importNested: boolean;
     importKeyword: string;
     importRawKeyword: string;
-    output: 'object' | 'json' | 'yaml' | 'raw';
+    output: 'object' | 'json' | 'yaml' | 'yml' | 'raw';
 }
 
 const defaultOptions: Options = {
@@ -168,7 +168,7 @@ function load(this: any, source: string) {
 
             if (options.output === 'json')
                 callback(undefined, JSON.stringify(context.output));
-            else if (options.output === 'yaml')
+            else if (options.output === 'yaml' || options.output === 'yml')
                 callback(undefined, YAML.safeDump(context.output));
             else if (options.output === 'raw')
                 callback(undefined, context.output);

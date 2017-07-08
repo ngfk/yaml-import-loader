@@ -47,4 +47,17 @@ describe('loader output', () => {
             test: 'a',
         });
     });
+
+    it('allow yml output', async () => {
+        const options = { importRoot: true, output: 'yml' };
+        const context = await utils.context('./yaml/plain.yml', options);
+
+        const { result } = await utils.load(context, loader);
+        const exported = YAML.safeLoad(result);
+
+        expect(exported).eql({
+            hello: 'world',
+            test: 'a',
+        });
+    });
 });
