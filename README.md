@@ -24,14 +24,14 @@ npm install --save-dev yaml-import-loader
 
 # Nested imports
 key1: !import ./hello_world.yml
-key2: !import ./array.yml
+key2: !import module-containing-yaml/array.yml
 key3: !import ./old.json
 html: !import-raw ./plain.html
 
 ### ./hello_world.yml
 hello: world
 
-### ./array.yml
+### module-containing-yaml/array.yml
 - elem1
 - elem2
 
@@ -115,7 +115,7 @@ hello: world
 
 ### Custom types
 
-This loader internally uses [js-yaml](https://github.com/ngfk/js-yaml) as parser check their [wiki](https://github.com/nodeca/js-yaml/wiki/Custom-types) for custom type examples. The types array accepts `Type` objects or a function returning a `Type`. If you create your type in a function you will get some context in the first parameter, with this context you can instruct `yaml-import-loader` to resolve promises.
+This loader internally uses [js-yaml](https://github.com/ngfk/js-yaml) as parser, check their [wiki](https://github.com/nodeca/js-yaml/wiki/Custom-types) for custom type examples. The types array accepts `Type` objects or a function returning a `Type`. If you create your type in a function you will get some context in the first parameter, with this context you can instruct the loader to resolve promises.
 
 ```javascript
 const { Type } = require('js-yaml');
@@ -174,5 +174,5 @@ console.log(JSON.stringify(yaml, undefined, 4));
 ```
 
 ### Examples
-* Use ngx-translate, with yaml files, without a runtime loader.  
+* Use ngx-translate, with yaml files, without a runtime loading/parsing.  
 [ngx-translate-yaml](https://github.com/ngfk/ngx-translate-yaml)
