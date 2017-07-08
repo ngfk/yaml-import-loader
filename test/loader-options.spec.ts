@@ -95,7 +95,7 @@ describe('loader options', () => {
         });
     });
 
-    it ('allow custom async types (min 50ms by design)', async () => {
+    it ('allow custom async types', async () => {
         const options: Partial<loader.Options> = {
             importRoot: true,
             types: [
@@ -121,7 +121,7 @@ describe('loader options', () => {
 
         expect(deps.length).eq(0);
         expect(result).eql({
-            result: 'I am resolved after 50 ms'
+            result: 'I am resolved after 2 ms!'
         });
     });
 
