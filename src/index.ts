@@ -6,6 +6,7 @@ import * as utils from 'loader-utils';
 export class Context {
 
     public dependencies = new Set<string>();
+    public resolveAsync = false;
     public output: any;
 
     constructor (
@@ -115,14 +116,13 @@ const parseImports = async (context: Context): Promise<Context> => {
 
     const options = context.options;
     let types: YAML.Type[] = [];
-    let containsPromises = false;
 
     if (options.importNested) {
         // !import <file>
         types.push(new YAML.Type('!' + options.importKeyword, {
             kind: 'scalar',
             construct: async (uri: string) => {
-                containsPromises = true;
+                context.resolveAsync = true;
 
                 const { file, data } = await read(join(context.directory, uri));
                 context.dependencies.add(file);
@@ -137,7 +137,7 @@ const parseImports = async (context: Context): Promise<Context> => {
         types.push(new YAML.Type('!' + options.importRawKeyword, {
             kind: 'scalar',
             construct: async (uri: string) => {
-                containsPromises = true;
+                context.resolveAsync = true;
 
                 const { file, data } = await read(join(context.directory, uri));
                 context.dependencies.add(file);
@@ -147,11 +147,13 @@ const parseImports = async (context: Context): Promise<Context> => {
     }
 
     // Include custom types
-    for (let type of context.options.types) {
-        if (typeof type === 'function')
-            types.push(type(context));
-        else
-            types.push(type);
+    if (context.options.types) {
+        for (let type of context.options.types) {
+            if (typeof type === 'function')
+                types.push(type(context));
+            else
+                types.push(type);
+        }
     }
 
     const schema = YAML.Schema.create(types);
@@ -159,7 +161,7 @@ const parseImports = async (context: Context): Promise<Context> => {
 
     // Since the construct function in our import type is async we
     // could have nested promises, these have to be resolved.
-    context.output = containsPromises
+    context.output = context.resolveAsync
         ? await resolvePromises(parsed)
         : parsed;
 

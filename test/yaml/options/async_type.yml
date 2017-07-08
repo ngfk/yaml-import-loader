@@ -1,0 +1,4 @@
+
+result: !async 
+  delay: 200
+  result: 'I am resolved after 200 ms'
