@@ -3,36 +3,30 @@ import * as utils  from './utils';
 import * as loader from '../src';
 import * as YAML   from 'js-yaml';
 
-// Example from https://github.com/nodeca/js-yaml/blob/master/examples/custom_types.js
-class Point {
-    constructor (
-        public x: number,
-        public y: number,
-        public z: number) { }
-}
-
-class Space {
-    constructor (
-        public height: number,
-        public width: number,
-        public points: Point[]
-    ) {
-        if (points) {
-            if (!points.every((point: Point) => { return point instanceof Point; }))
-                throw new Error('A non-Point inside a points array!');
-        }
-    }
-}
-
-class Async {
-    constructor (
-        public delay: number,
-        public result: any) { }
-}
-
 describe('loader options', () => {
 
     it('allow custom types', async () => {
+        // Example from https://github.com/nodeca/js-yaml/blob/master/examples/custom_types.js
+        class Point {
+            constructor (
+                public x: number,
+                public y: number,
+                public z: number) { }
+        }
+
+        class Space {
+            constructor (
+                public height: number,
+                public width: number,
+                public points: Point[]
+            ) {
+                if (points) {
+                    if (!points.every((point: Point) => { return point instanceof Point; }))
+                        throw new Error('A non-Point inside a points array!');
+                }
+            }
+        }
+
         const options: Partial<loader.Options> = {
             importRoot: true,
             types: [
@@ -96,6 +90,12 @@ describe('loader options', () => {
     });
 
     it ('allow custom async types', async () => {
+        class Async {
+            constructor (
+                public delay: number,
+                public result: any) { } // tslint:disable-line no-shadowed-variable
+        }
+
         const options: Partial<loader.Options> = {
             importRoot: true,
             types: [

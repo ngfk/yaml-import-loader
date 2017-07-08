@@ -89,11 +89,19 @@ hello: world
             // false for a regular yaml-loader.
             importNested: true,
 
-            // The import keyword: `!${importKeyword} <file>` for yaml/json contents
+            // The import keyword: `!${importKeyword} <file>` for
+            // yaml/json contents
             importKeyword: 'import',
 
-            // The import-raw keyword: `!${importKeyword} <file>` for raw file contents
+            // The import-raw keyword: `!${importKeyword} <file>` for
+            // raw file contents
             importRawKeyword: 'import-raw',
+
+            // Allow adding custom types, for details see the js-yaml wiki:
+            // https://github.com/nodeca/js-yaml/wiki/Custom-types
+            // Or look at the 'allow custom types' & 'allow custom async types' test:
+            // https://github.com/ngfk/yaml-import-loader/blob/master/test/loader-options.spec.ts
+            types: [],
 
             // Output type. Can be 'object', 'json', or 'yaml'
             // 'object' -> exported js object
