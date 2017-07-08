@@ -2,7 +2,8 @@
   "name": "yaml-import-loader",
   "version": "1.1.1",
   "description": "YAML loader for Webpack supporting the '!import <file>' type to include different YAML files, and '!import-raw <file>' to include the raw contents of a file.",
-  "main": "index.js",
+  "main": "dist/index",
+  "typings": "dist/index",
   "scripts": {
     "start": "npm run test:watch",
     "build": "npm run clean && tsc",
@@ -33,7 +34,7 @@
   },
   "homepage": "https://github.com/ngfk/yaml-import-loader#readme",
   "files": [
-    "lib"
+    "dist"
   ],
   "dependencies": {
     "js-yaml": "^3.8.4",
