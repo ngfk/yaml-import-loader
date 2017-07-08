@@ -1,13 +1,13 @@
-const { expect } = require('chai');
-const utils = require('./utils');
-const loader = require('../index');
+import { expect }  from 'chai';
+import * as utils  from './utils';
+import * as loader from '../src';
 
 describe('loader basics', () => {
 
     it('no change without import keywords', () => {
         return utils.context('./yaml/plain.yml', { output: 'raw' })
             .then(context => utils.load(context, loader))
-            .then(({ result, deps, source }) => {
+            .then(({ result, deps }) => {
                 expect(deps).eql([]);
                 expect(result).eql({
                     hello: 'world',
@@ -55,7 +55,7 @@ describe('loader basics', () => {
                 expect(deps).contain(utils.resolve('./yaml/nested.yml'));
                 expect(deps).contain(utils.resolve('./yaml/array.yml'));
                 expect(deps).contain(utils.resolve('./yaml/plain.yml'));
-                
+
                 expect(result).eql({
                     value: {
                         hello: 'world',

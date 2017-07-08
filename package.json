@@ -5,10 +5,15 @@
   "main": "index.js",
   "scripts": {
     "start": "npm run test:watch",
-    "test": "mocha test/**/*.spec.js",
-    "test:watch": "mocha --watch --watch-extensions js,yml,yaml,json,html test/**/*.spec.js",
-    "preversion": "npm run test",
-    "prepublishOnly": "npm run preversion"
+    "build": "npm run clean && tsc",
+    "build:watch": "npm run build -- --watch",
+    "test": "mocha --compilers ts:ts-node/register test/**/*.spec.ts",
+    "test:watch": "npm run test -- --watch --watch-extensions js,yml,yaml,json,html",
+    "lint": "tslint -p tsconfig.json --type-check src/**/*.ts",
+    "clean": "rimraf ./dist",
+    "check": "npm run clean && npm run lint && npm run test && npm run build",
+    "preversion": "npm run check",
+    "prepublishOnly": "npm run check"
   },
   "repository": {
     "type": "git",
@@ -27,15 +32,23 @@
     "url": "https://github.com/ngfk/yaml-import-loader/issues"
   },
   "homepage": "https://github.com/ngfk/yaml-import-loader#readme",
+  "files": [
+    "lib"
+  ],
   "dependencies": {
     "js-yaml": "^3.8.4",
     "loader-utils": "^1.1.0"
   },
-  "files": [
-    "index.js"
-  ],
   "devDependencies": {
+    "@types/chai": "^4.0.1",
+    "@types/js-yaml": "^3.5.31",
+    "@types/mocha": "^2.2.41",
+    "@types/node": "^8.0.9",
     "chai": "^4.0.2",
-    "mocha": "^3.4.2"
+    "mocha": "^3.4.2",
+    "rimraf": "^2.6.1",
+    "ts-node": "^3.2.0",
+    "tslint": "^5.5.0",
+    "typescript": "^2.4.1"
   }
 }

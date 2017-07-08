@@ -1,7 +1,7 @@
-const { expect } = require('chai');
-const utils = require('./utils');
-const loader = require('../index');
-const YAML = require('js-yaml');
+import { expect }  from 'chai';
+import * as utils  from './utils';
+import * as loader from '../src';
+import * as YAML   from 'js-yaml';
 
 describe('loader output', () => {
 
