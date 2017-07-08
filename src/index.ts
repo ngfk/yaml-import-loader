@@ -3,23 +3,7 @@ import { readFile } from 'fs';
 import * as YAML  from 'js-yaml';
 import * as utils from 'loader-utils';
 
-export interface Options {
-    importRoot: boolean;
-    importNested: boolean;
-    importKeyword: string;
-    importRawKeyword: string;
-    output: 'object' | 'json' | 'yaml' | 'yml' | 'raw';
-}
-
-const defaultOptions: Options = {
-    importRoot: false,
-    importNested: true,
-    importKeyword: 'import',
-    importRawKeyword: 'import-raw',
-    output: 'object'
-};
-
-class Context {
+export class Context {
 
     public dependencies = new Set<string>();
     public output: any;
@@ -29,6 +13,26 @@ class Context {
         public directory: string,
         public options: Options) { }
 }
+
+export type CustomType = ((context: Context) => YAML.Type) | YAML.Type;
+
+export interface Options {
+    importRoot: boolean;
+    importNested: boolean;
+    importKeyword: string;
+    importRawKeyword: string;
+    types: CustomType[];
+    output: 'object' | 'json' | 'yaml' | 'yml' | 'raw';
+}
+
+const defaultOptions: Options = {
+    importRoot: false,
+    importNested: true,
+    importKeyword: 'import',
+    importRawKeyword: 'import-raw',
+    types: [],
+    output: 'object'
+};
 
 const read = (file: string, ext = true): Promise<{ file: string, data: string }> => {
     if (ext && !extname(file)) {
@@ -140,6 +144,14 @@ const parseImports = async (context: Context): Promise<Context> => {
                 return data;
             }
         }));
+    }
+
+    // Include custom types
+    for (let type of context.options.types) {
+        if (typeof type === 'function')
+            types.push(type(context));
+        else
+            types.push(type);
     }
 
     const schema = YAML.Schema.create(types);
