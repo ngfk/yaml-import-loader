@@ -63,7 +63,7 @@ hello: world
   "key3": {
     "jsonKey": "jsonValue"
   },
-  "html": "<div>Hey!</div>\n<p>\n  Some paragraph...\n</p>\n"
+  "html": "<!-- plain.html -->\n<div>Hey!</div>\n<p>\n  Some paragraph...\n</p>"
 }
 ```
 
