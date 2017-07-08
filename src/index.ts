@@ -11,17 +11,6 @@ export interface Options {
     output: 'object' | 'json' | 'yaml' | 'raw';
 }
 
-class Context {
-
-    public readonly dependencies = new Set<string>();
-    public output: any;
-
-    constructor (
-        public input: string,
-        public readonly directory: string,
-        public readonly options: Options) { }
-}
-
 const defaultOptions: Options = {
     importRoot: false,
     importNested: true,
@@ -29,6 +18,17 @@ const defaultOptions: Options = {
     importRawKeyword: 'import-raw',
     output: 'object'
 };
+
+class Context {
+
+    public dependencies = new Set<string>();
+    public output: any;
+
+    constructor (
+        public input: string,
+        public directory: string,
+        public options: Options) { }
+}
 
 const read = (file: string, ext = true): Promise<{ file: string, data: string }> => {
     if (ext && !extname(file)) {
@@ -158,7 +158,7 @@ function load(this: any, source: string) {
     if (this.cacheable)
         this.cacheable();
 
-    let options = Object.assign({}, defaultOptions, utils.getOptions(this));
+    let options = { ...defaultOptions, ...utils.getOptions(this) };
     let context = new Context(source, dirname(this.resourcePath), options);
 
     const callback = this.async();
