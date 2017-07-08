@@ -35,22 +35,26 @@ const defaultOptions: Options = {
     output: 'object'
 };
 
-const read = (file: string, ext = true): Promise<{ file: string, data: string }> => {
+const read = (dir: string, file: string, ext = true): Promise<{ file: string, data: string }> => {
     if (ext && !extname(file)) {
         let error: any;
-        return read(file, false).catch(err => error = err)
-            .then(_ => read(file + '.yml'))
-            .catch(_ => read(file + '.yaml'))
-            .catch(_ => read(file + '.json'))
+        return read(dir, file, false).catch(err => error = err)
+            .then(_ => read(dir, file + '.yml'))
+            .catch(_ => read(dir, file + '.yaml'))
+            .catch(_ => read(dir, file + '.json'))
             .catch(_ => Promise.reject(error));
     }
 
+    let location = file.startsWith('.')
+        ? join(dir, file)
+        : require.resolve(file);
+
     return new Promise<{ file: string, data: string }>((resolve, reject) => {
-        readFile(file, (err, data) => {
+        readFile(location, (err, data) => {
             if (err)
                 reject(err);
             else
-                resolve({ file, data: data.toString() });
+                resolve({ file: location, data: data.toString() });
         });
     });
 };
@@ -91,7 +95,7 @@ const parseRootImports = async (context: Context): Promise<Context> => {
             continue;
         }
 
-        const { file, data } = await read(join(context.directory, match[2]));
+        const { file, data } = await read(context.directory, match[2]);
         context.dependencies.add(file);
 
         let obj: any;
@@ -124,7 +128,7 @@ const parseImports = async (context: Context): Promise<Context> => {
             construct: async (uri: string) => {
                 context.resolveAsync = true;
 
-                const { file, data } = await read(join(context.directory, uri));
+                const { file, data } = await read(context.directory, uri);
                 context.dependencies.add(file);
 
                 const { output, dependencies } = await parseImports(new Context(data, dirname(file), context.options));
@@ -139,7 +143,7 @@ const parseImports = async (context: Context): Promise<Context> => {
             construct: async (uri: string) => {
                 context.resolveAsync = true;
 
-                const { file, data } = await read(join(context.directory, uri));
+                const { file, data } = await read(context.directory, uri);
                 context.dependencies.add(file);
                 return data;
             }

@@ -1,0 +1,2 @@
+
+result: !import mocha/lib/browser/.eslintrc.yaml

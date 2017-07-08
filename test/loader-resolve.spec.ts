@@ -1,8 +1,9 @@
 import { expect }  from 'chai';
+import * as YAML   from 'js-yaml';
 import * as utils  from './utils';
 import * as loader from '../src';
 
-describe('loader basics', () => {
+describe('loader resolving', () => {
 
     it('auto append yml extension', async () => {
         const options = { output: 'raw', importRoot: true };
@@ -48,5 +49,20 @@ describe('loader basics', () => {
         expect(result.length).eq(2);
         expect(result).contain('elem1');
         expect(result).contain('elem2');
+    });
+
+    it('allow resolve from module', async () => {
+        const options = { output: 'raw', importRoot: true };
+        const context = await utils.context('./yaml/resolve/resolve_module.yml', options);
+        const modulePath = require.resolve('mocha/lib/browser/.eslintrc.yaml');
+        const moduleCont = YAML.safeLoad(await utils.read(modulePath));
+
+        const { result, deps } = await utils.load(context, loader);
+
+        expect(deps.length).eq(1);
+        expect(deps).contain(modulePath);
+        expect(result).eql({
+            result: moduleCont
+        });
     });
 });
