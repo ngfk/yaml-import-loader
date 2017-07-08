@@ -2,12 +2,12 @@ import { expect }  from 'chai';
 import * as utils  from './utils';
 import * as loader from '../src';
 
-describe('loader raw', () => {
+describe('loader !import-raw <file>', () => {
 
     it('allow raw root import', async () => {
         const options = { importRoot: true, output: 'raw' };
-        const context = await utils.context('./yaml/raw/root.yml', options);
-        
+        const context = await utils.context('./yaml/import-raw/root.yml', options);
+
         const { result } = await utils.load(context, loader);
 
         expect(result).eq('<div>Hello World!</div>\n<div>Hello World!</div>');
@@ -15,7 +15,7 @@ describe('loader raw', () => {
 
     it('allow raw nested import', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/raw/nested.yml', options);
+        const context = await utils.context('./yaml/import-raw/nested.yml', options);
 
         const { result } = await utils.load(context, loader);
 
@@ -27,7 +27,7 @@ describe('loader raw', () => {
 
     it('allow raw mixed import', async () => {
         const options = { importRoot: true, output: 'raw' };
-        const context = await utils.context('./yaml/raw/mixed.yml', options);
+        const context = await utils.context('./yaml/import-raw/mixed.yml', options);
 
         const { result } = await utils.load(context, loader);
 

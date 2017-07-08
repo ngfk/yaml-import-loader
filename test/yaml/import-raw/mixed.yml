@@ -1,3 +1,3 @@
 
-!import-raw ../nested.yml
+!import-raw ../import/nested.yml
 html: !import-raw ../../html/test.html

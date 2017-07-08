@@ -1,4 +1,0 @@
-
-!import ../json/map.json
-nested: !import ../json/map.json
-array: !import ../json/array.json

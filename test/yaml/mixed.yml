@@ -1,3 +1,0 @@
-
-!import ./nested.yml
-other: !import ./array.yml
