@@ -1,2 +1,3 @@
 
-html: !import-raw ../../html/test.html
+plain: !import-raw ../../html/plain.html
+test: !import-raw ../../html/test.html

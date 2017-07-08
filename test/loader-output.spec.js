@@ -9,10 +9,16 @@ describe('loader output', () => {
         return utils.context('./yaml/plain.yml', { importRoot: true })
             .then(context => utils.load(context, loader))
             .then(({ result }) => {
-                expect(result).eql(`module.exports = ${JSON.stringify({
+                const start    = 'module.exports = ';
+                const end      = ';';
+                const exported = JSON.parse(result.substring(start.length, result.length - end.length));
+
+                expect(result.startsWith(start)).eq(true);
+                expect(result.endsWith(end)).eq(true);
+                expect(exported).eql({
                     hello: 'world',
                     test: 'a',
-                })};`);
+                });
             });
     });
 
@@ -20,10 +26,12 @@ describe('loader output', () => {
         return utils.context('./yaml/plain.yml', { importRoot: true, output: 'json' })
             .then(context => utils.load(context, loader))
             .then(({ result }) => {
-                expect(result).eql(JSON.stringify({
+                const exported = JSON.parse(result);
+
+                expect(exported).eql({
                     hello: 'world',
                     test: 'a',
-                }));
+                });
             });
     });
 
@@ -31,10 +39,12 @@ describe('loader output', () => {
         return utils.context('./yaml/plain.yml', { importRoot: true, output: 'yaml' })
             .then(context => utils.load(context, loader))
             .then(({ result }) => {
-                expect(result).eql(YAML.safeDump({
+                const exported = YAML.safeLoad(result);
+
+                expect(exported).eql({
                     hello: 'world',
                     test: 'a',
-                }));
+                });
             });
     });
 });
