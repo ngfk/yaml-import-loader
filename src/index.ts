@@ -35,23 +35,21 @@ const defaultOptions: Options = {
 };
 
 const request = async (uri: string, isHttps = true): Promise<string> => {
-    const { URL } = await import('url');
     const http  = await import('http');
     const https = await import('https');
 
-    const url = new URL(uri);
     return new Promise<string>((resolve, reject) => {
         let result = '';
 
         if (isHttps) {
-            https.get(url, res => {
+            https.get(uri, res => {
                 res.on('data', data => result += data);
                 res.on('end', () => resolve(result));
                 res.on('error', err => reject(err));
             });
         }
         else {
-            http.get(url, res => {
+            http.get(uri, res => {
                 res.on('data', data => result += data);
                 res.on('end', () => resolve(result));
                 res.on('error', err => reject(err));
