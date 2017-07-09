@@ -38,7 +38,7 @@
     "dist"
   ],
   "dependencies": {
-    "js-yaml": "^3.8.4",
+    "js-yaml": "^3.9.0",
     "loader-utils": "^1.1.0"
   },
   "devDependencies": {
