@@ -156,8 +156,8 @@ const parseImports = async (context: Context): Promise<Context> => {
     const options = context.options;
     let types: YAML.Type[] = [];
 
-    if (options.importNested) {
-        // !import <file>
+    // !import <file>
+    if (options.importNested && options.importKeyword) {
         types.push(new YAML.Type('!' + options.importKeyword, {
             kind: 'scalar',
             construct: async (uri: string) => {
@@ -171,8 +171,10 @@ const parseImports = async (context: Context): Promise<Context> => {
                 return output;
             }
         }));
+    }
 
-        // !import-raw <file>
+    // !import-raw <file>
+    if (options.importNested && options.importRawKeyword) {
         types.push(new YAML.Type('!' + options.importRawKeyword, {
             kind: 'scalar',
             construct: async (uri: string) => {
