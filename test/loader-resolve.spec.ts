@@ -67,7 +67,6 @@ describe('loader resolving', () => {
         });
     });
 
-
     it('allow resolve from http', async () => {
         const { EventEmitter } = await import('events');
         const yamlUri = 'http://test.com/yaml/plain.yml';
