@@ -1,0 +1,3 @@
+
+import: !import https://raw.githubusercontent.com/ngfk/yaml-import-loader/master/test/yaml/plain.yml
+importRaw: !import-raw https://raw.githubusercontent.com/ngfk/yaml-import-loader/master/test/html/plain.html

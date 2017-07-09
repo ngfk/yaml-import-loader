@@ -65,4 +65,19 @@ describe('loader resolving', () => {
             result: moduleCont
         });
     });
+
+    it('allow resolve from https', async () => {
+        const options = { output: 'raw', importRoot: true };
+        const context = await utils.context('./yaml/resolve/resolve_https.yml', options);
+
+        const { result, deps } = await utils.load(context, loader);
+        expect(deps.length).eq(0);
+        expect(result).eql({
+            import: {
+                hello: 'world',
+                test: 'a'
+            },
+            importRaw: '<!-- plain.html -->\n\n<div>Hey!</div>\n<p>\n    Some paragraph...\n</p>\n'
+        });
+    });
 });

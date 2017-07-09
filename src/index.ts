@@ -1,5 +1,4 @@
 import { join, dirname, extname } from 'path';
-import { readFile } from 'fs';
 import * as YAML  from 'js-yaml';
 import * as utils from 'loader-utils';
 
@@ -35,8 +34,37 @@ const defaultOptions: Options = {
     output: 'object'
 };
 
-const read = (dir: string, file: string, ext = true): Promise<{ file: string, data: string }> => {
-    if (ext && !extname(file)) {
+const request = async (uri: string, isHttps = true): Promise<string> => {
+    const { URL } = await import('url');
+    const http  = await import('http');
+    const https = await import('https');
+
+    const url = new URL(uri);
+    return new Promise<string>((resolve, reject) => {
+        let result = '';
+
+        if (isHttps) {
+            https.get(url, res => {
+                res.on('data', data => result += data);
+                res.on('end', () => resolve(result));
+                res.on('error', err => reject(err));
+            });
+        }
+        else {
+            http.get(url, res => {
+                res.on('data', data => result += data);
+                res.on('end', () => resolve(result));
+                res.on('error', err => reject(err));
+            });
+        }
+    });
+};
+
+type ImportResult = { file: string, data: string };
+
+const read = async (dir: string, file: string, checkExt = true): Promise<ImportResult> => {
+    const { readFile } = await import('fs');
+    if (checkExt && !extname(file)) {
         let error: any;
         return read(dir, file, false).catch(err => error = err)
             .then(_ => read(dir, file + '.yml'))
@@ -49,7 +77,7 @@ const read = (dir: string, file: string, ext = true): Promise<{ file: string, da
         ? join(dir, file)
         : require.resolve(file);
 
-    return new Promise<{ file: string, data: string }>((resolve, reject) => {
+    return new Promise<ImportResult>((resolve, reject) => {
         readFile(location, (err, data) => {
             if (err)
                 reject(err);
@@ -57,6 +85,15 @@ const read = (dir: string, file: string, ext = true): Promise<{ file: string, da
                 resolve({ file: location, data: data.toString() });
         });
     });
+};
+
+const performImport = (dir: string, file: string, checkExt = true): Promise<ImportResult> => {
+    if (file.startsWith('https://'))
+        return request(file, true).then(data => ({ file, data }));
+    else if (file.startsWith('http://'))
+        return request(file, false).then(data => ({ file, data }));
+    else
+        return read(dir, file, checkExt);
 };
 
 const resolvePromises = (value: any): Promise<any> => {
@@ -95,7 +132,7 @@ const parseRootImports = async (context: Context): Promise<Context> => {
             continue;
         }
 
-        const { file, data } = await read(context.directory, match[2]);
+        const { file, data } = await performImport(context.directory, match[2]);
         context.dependencies.add(file);
 
         let obj: any;
@@ -128,7 +165,7 @@ const parseImports = async (context: Context): Promise<Context> => {
             construct: async (uri: string) => {
                 context.resolveAsync = true;
 
-                const { file, data } = await read(context.directory, uri);
+                const { file, data } = await performImport(context.directory, uri);
                 context.dependencies.add(file);
 
                 const { output, dependencies } = await parseImports(new Context(data, dirname(file), context.options));
@@ -143,7 +180,7 @@ const parseImports = async (context: Context): Promise<Context> => {
             construct: async (uri: string) => {
                 context.resolveAsync = true;
 
-                const { file, data } = await read(context.directory, uri);
+                const { file, data } = await performImport(context.directory, uri);
                 context.dependencies.add(file);
                 return data;
             }
@@ -182,7 +219,10 @@ function load(this: any, source: string) {
     const callback = this.async();
     parseImports(context)
         .then(() => {
-            context.dependencies.forEach(dep => this.addDependency(dep));
+            context.dependencies.forEach(dep => {
+                if (!dep.startsWith('http://') && !dep.startsWith('https://'))
+                    this.addDependency(dep);
+            });
 
             if (options.output === 'json')
                 callback(undefined, JSON.stringify(context.output));
