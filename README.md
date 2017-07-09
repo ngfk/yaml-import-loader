@@ -127,11 +127,11 @@ If you set the `importRoot` option to `true`, the yaml-import-loader will allow 
 nested: !import ./nested-import.yml
 ```
 
-> You must ensure that you do not mix types at the root level. If the file contains a mapping at the root level all root imports must import a mapping, if the root level is an array ever root import must import an array. If this is not the case parsing will fail.
+> You must ensure that you do not mix types at the root level. If the file contains a mapping at the root level all root imports must import a mapping, if the root level is an array every root import must import an array. If this is not the case parsing will fail.
 
 ### Custom types
 
-This loader internally uses [js-yaml](https://github.com/nodeca/js-yaml) for parsing, check their [wiki](https://github.com/nodeca/js-yaml/wiki/Custom-types) for examples on using custom types. The types option accepts an array with `Type` objects, and functions returning a `Type` object. If you create your type in a function you will get context in the first parameter, with this context you can instruct the loader to resolve promises.
+This loader internally uses [js-yaml](https://github.com/nodeca/js-yaml) for parsing, check their [wiki](https://github.com/nodeca/js-yaml/wiki/Custom-types) for examples on using custom types. The types option accepts an array with `Type` objects, and functions returning a `Type` object. If you create your type in a function you will get context in the first parameter, with this context you can instruct the loader to resolve promises (this already happens if you use imports).
 
 ```javascript
 const { Type } = require('js-yaml');
