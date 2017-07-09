@@ -6,20 +6,12 @@ import * as YAML   from 'js-yaml';
 describe('loader options', () => {
 
     it('allow custom types', async () => {
-        // Example from https://github.com/nodeca/js-yaml/blob/master/examples/custom_types.js
         class Point {
-            constructor (
-                public x: number,
-                public y: number,
-                public z: number) { }
+            constructor(public x: number, public y: number, public z: number) { }
         }
 
         class Space {
-            constructor (
-                public height: number,
-                public width: number,
-                public points: Point[]
-            ) {
+            constructor(public height: number, public width: number, public points: Point[]) {
                 if (points) {
                     if (!points.every((point: Point) => { return point instanceof Point; }))
                         throw new Error('A non-Point inside a points array!');
@@ -57,6 +49,7 @@ describe('loader options', () => {
                 ],
             }
         };
+
         const context = await utils.context('./yaml/options/custom_types.yml', options);
 
         const { result, deps } = await utils.load(context, loader);
