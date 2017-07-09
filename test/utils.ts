@@ -32,20 +32,20 @@ class Context {
     }
 }
 
-export const load = (context: Context, loader: any) => {
-    return new Promise<{ result: string, deps: string[], source: string }>((resolve, reject) => {
-        (context as any)[DONE] = (e: any, r: string, d: string[]) => {
+export const load = (ctx: Context, loader: any) => {
+    return new Promise<{ result: string, deps: string[], source: string }>((res, rej) => {
+        (ctx as any)[DONE] = (e: any, r: string, d: string[]) => {
             if (e)
-                reject(e);
+                rej(e);
             else {
-                resolve({
+                res({
                     result: r,
                     deps: d,
-                    source: (context as any)[DATA]
+                    source: (ctx as any)[DATA]
                 });
             }
         };
-        loader.call(context, (context as any)[DATA]);
+        loader.call(ctx, (ctx as any)[DATA]);
     });
 };
 
@@ -61,12 +61,12 @@ export const context = async <T extends {}>(file: string, options: T): Promise<C
 };
 
 export const read = (file: string): Promise<string> => {
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<string>((res, rej) => {
         fs.readFile(path.resolve(__dirname, file), (err, data) => {
             if (err)
-                reject(err);
+                rej(err);
             else
-                resolve(data.toString());
+                res(data.toString());
         });
     });
 };
