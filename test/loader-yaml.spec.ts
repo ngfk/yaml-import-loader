@@ -34,7 +34,7 @@ describe('YAML features', () => {
         });
     });
 
-    it('support inheritence', async () => {
+    it('support inheritance', async () => {
         const options = { output: 'raw' };
         const context = await utils.context('./yaml/yaml/inheritance.yml', options);
 
