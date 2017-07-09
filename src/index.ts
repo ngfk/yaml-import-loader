@@ -197,8 +197,10 @@ const parseImports = async (context: Context): Promise<Context> => {
         }
     }
 
+    const docs: any[] = [];
     const schema = YAML.Schema.create(types);
-    const parsed = YAML.safeLoad(context.input, { schema });
+    YAML.safeLoadAll(context.input, doc => docs.push(doc), { schema });
+    const parsed = docs.length > 1 ? docs : docs[0];
 
     // Since the construct function in our import type is async we
     // could have nested promises, these have to be resolved.

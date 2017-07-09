@@ -67,4 +67,18 @@ describe('YAML features', () => {
             specialDelivery3: 'Follow the Yellow Brick Road to the Emerald City.'
         });
     });
+
+    it('support multi document sources ', async () => {
+        const options = { output: 'raw' };
+        const context = await utils.context('./yaml/yaml/multi-document.yml', options);
+
+        const { result, deps } = await utils.load(context, loader);
+
+        expect(deps.length).eq(0);
+        expect(result).eql([
+            { document: 1 },
+            { document: 2 },
+            { document: 3 },
+        ]);
+    });
 });
