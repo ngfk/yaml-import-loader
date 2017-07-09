@@ -1,5 +1,6 @@
 import { expect }  from 'chai';
 import * as YAML   from 'js-yaml';
+import * as mockre from 'mock-require';
 import * as utils  from './utils';
 import * as loader from '../src';
 
@@ -66,7 +67,63 @@ describe('loader resolving', () => {
         });
     });
 
+
+    it('allow resolve from http', async () => {
+        const { EventEmitter } = await import('events');
+        const yamlUri = 'http://test.com/yaml/plain.yml';
+        const htmlUri = 'http://test.com/html/plain.html';
+        const yamlContent = await utils.read('./yaml/plain.yml');
+        const htmlContent = await utils.read('./html/plain.html');
+
+        mockre('http', {
+            get: (uri: string, cb: Function) => {
+                let emitter = new EventEmitter();
+
+                expect(uri === yamlUri || uri === htmlUri).eq(true);
+                expect(cb).a('function');
+
+                cb(emitter);
+                emitter.emit('data', uri === yamlUri ? yamlContent : htmlContent);
+                emitter.emit('end');
+            }
+        });
+
+        const options = { output: 'raw', importRoot: true };
+        const context = await utils.context('./yaml/resolve/resolve_http.yml', options);
+
+        const { result, deps } = await utils.load(context, loader);
+        expect(deps.length).eq(0);
+        expect(result).eql({
+            import: {
+                hello: 'world',
+                test: 'a'
+            },
+            importRaw: '<!-- plain.html -->\n\n<div>Hey!</div>\n<p>\n    Some paragraph...\n</p>\n'
+        });
+
+        mockre.stop('http');
+    });
+
     it('allow resolve from https', async () => {
+        const { EventEmitter } = await import('events');
+        const yamlUri = 'https://test.com/yaml/plain.yml';
+        const htmlUri = 'https://test.com/html/plain.html';
+        const yamlContent = await utils.read('./yaml/plain.yml');
+        const htmlContent = await utils.read('./html/plain.html');
+
+        mockre('https', {
+            get: (uri: string, cb: Function) => {
+                let emitter = new EventEmitter();
+
+                expect(uri === yamlUri || uri === htmlUri).eq(true);
+                expect(cb).a('function');
+
+                cb(emitter);
+                emitter.emit('data', uri === yamlUri ? yamlContent : htmlContent);
+                emitter.emit('end');
+            }
+        });
+
         const options = { output: 'raw', importRoot: true };
         const context = await utils.context('./yaml/resolve/resolve_https.yml', options);
 
@@ -79,5 +136,7 @@ describe('loader resolving', () => {
             },
             importRaw: '<!-- plain.html -->\n\n<div>Hey!</div>\n<p>\n    Some paragraph...\n</p>\n'
         });
+
+        mockre.stop('https');
     });
 });

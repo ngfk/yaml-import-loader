@@ -1,0 +1,3 @@
+
+import: !import http://test.com/yaml/plain.yml
+importRaw: !import-raw http://test.com/html/plain.html
