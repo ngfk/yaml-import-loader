@@ -184,4 +184,25 @@ describe('loader options', () => {
             test: 'a',
         });
     });
+
+    it('allow duplicate keys by default', async () => {
+        const options = { importRoot: true, output: 'raw' };
+        const context = await utils.context('./yaml/options/duplicate.yml', options);
+
+        const { result } = await utils.load(context, loader);
+
+        expect(result).eql({ key: 'new value', });
+    });
+
+    it('allow disabling duplicate keys', async () => {
+        const options = { importRoot: true, output: 'raw', parser: { allowDuplicate: false } };
+        const context = await utils.context('./yaml/options/duplicate.yml', options);
+
+        return utils.load(context, loader)
+            .then(() => expect(false).eq(true))
+            .catch(err => {
+                expect(err).instanceOf(YAML.YAMLException);
+                expect(err.reason).eq('duplicated mapping key');
+            });
+    });
 });
