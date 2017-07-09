@@ -60,48 +60,59 @@ hello: world
 
 ## Configuration
 
-This loader is supposed to be used with [Webpack](https://webpack.js.org).  The `webpack.config.js` snippet below is not a complete configuration and only demonstrates how to configure this loader. Check the [documentation](https://webpack.js.org/configuration/) for more information on how to configure webpack.
+This loader is supposed to be used with [Webpack](https://webpack.js.org). The configuration snippet below is not a complete webpack configuration and only demonstrates how to configure this loader. Check the [documentation](https://webpack.js.org/configuration/) for information on how to configure webpack. The `parser` options are passed to the YAML parser: [js-yaml](https://github.com/nodeca/js-yaml). You can find more information about those options in their [README](https://github.com/nodeca/js-yaml/blob/master/README.md).
 
-### webpack.config.js
+### Webpack - module.rules entry
 ```javascript
 {
-  module: {
-    rules: [
-      {
-        test: /\.ya?ml$/,
-        use: {
-          loader: 'yaml-import-loader'
-          
-          // The options below are the default options
-          options: {
-            // Allows !import <file> without key. When using this the
-            // targets file content will be inserted at the import location.
-            importRoot: false,
+  test: /\.ya?ml$/,
+  use: {
+    loader: 'yaml-import-loader'
+    
+    // Note: The options below are the default options
+    options: {
 
-            // Allows !import <file> with key. Set this and importRoot to
-            // false for a regular yaml-loader.
-            importNested: true,
+      // Allows !import <file> without key. When using this the
+      // targets file content will be inserted at the import location.
+      importRoot: false,
 
-            // The import keyword: `!${importKeyword} <file>` for
-            // yaml/json contents
-            importKeyword: 'import',
+      // Allows !import <file> with key. Set this and importRoot to
+      // false for a regular yaml-loader.
+      importNested: true,
 
-            // The import-raw keyword: `!${importRawKeyword} <file>` for
-            // raw file contents
-            importRawKeyword: 'import-raw',
+      // The import keyword: `!${importKeyword} <file>` for yaml/json
+      // contents
+      importKeyword: 'import',
 
-            // Allows adding custom types, see details below.
-            types: [],
+      // The import-raw keyword: `!${importRawKeyword} <file>` for raw
+      // file contents
+      importRawKeyword: 'import-raw',
 
-            // Output type. Can be 'object', 'json', or 'yaml'
-            // 'object' -> exported js object
-            // 'json'   -> stringified json
-            // 'yaml'   -> stringified yaml
-            output: 'object'
-          }
-        }
-      },
-    ]
+      // Output type. Can be 'object', 'json', or 'yaml'
+      // 'object' -> exported js object
+      // 'json'   -> stringified json
+      // 'yaml'   -> stringified yaml
+      output: 'object',
+
+      // The options below are passed to the parser: js-yaml, see
+      // their repository for more information.
+      parser: {
+
+        // Allows adding custom types, details below.
+        types: [],
+
+        // Base schema to extend, can be an array of schemas.
+        schema: require('js-yaml').SAFE_SCHEMA,
+
+        // Allows a duplicate key. The old value in a duplicate key
+        // will be overwritten (json option in js-yaml).
+        allowDuplicate: true,
+
+        // function to call on warning messages. Parser will throw on
+        // warnings if this function is not provided.
+        onWarning: undefined
+      }
+    }
   }
 }
 ```
@@ -124,7 +135,7 @@ If you set the `importRoot` option to `true`, the yaml-import-loader will allow 
 
 ### Custom types
 
-This loader internally uses [js-yaml](https://github.com/ngfk/js-yaml) for parsing, check their [wiki](https://github.com/nodeca/js-yaml/wiki/Custom-types) for examples on using custom types. The types option accepts an array with `Type` objects, and functions returning a `Type` object. If you create your type in a function you will get context in the first parameter, with this context you can instruct the loader to resolve promises.
+This loader internally uses [js-yaml](https://github.com/nodeca/js-yaml) for parsing, check their [wiki](https://github.com/nodeca/js-yaml/wiki/Custom-types) for examples on using custom types. The types option accepts an array with `Type` objects, and functions returning a `Type` object. If you create your type in a function you will get context in the first parameter, with this context you can instruct the loader to resolve promises.
 
 ```javascript
 const { Type } = require('js-yaml');
@@ -158,17 +169,6 @@ result: !async
 # JSON output
 {
   "result": "I will be resolved after 1 second, asynchronously!"
-}
-```
-
-### Context
-
-```typescript
-interface Context {
-    public input: string;
-    public dependencies: Set<string>;
-    public resolveAsync: boolean;
-    public directory: string;
 }
 ```
 

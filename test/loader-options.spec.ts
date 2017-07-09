@@ -27,33 +27,35 @@ describe('loader options', () => {
             }
         }
 
-        const options: Partial<loader.Options> = {
+        const options: loader.Options = {
             importRoot: true,
-            types: [
-                new YAML.Type('!point', {
-                    kind: 'sequence',
-                    resolve: (data: number[]) => {
-                        // tslint:disable-next-line no-null-keyword
-                        return data !== null && data.length === 3;
-                    },
-                    construct: (data: number[]) => {
-                        return new Point(data[0], data[1], data[2]);
-                    },
-                    instanceOf: Point,
-                    represent: (point: any) => {
-                        return [point.x, point.y, point.z];
-                    }
-                }),
-                new YAML.Type('!space', {
-                    kind: 'mapping',
-                    construct: (data: any) => {
-                        data = data || {};
-                        return new Space(data.height || 0, data.width || 0, data.points || []);
-                    },
-                    instanceOf: Space
-                })
-            ],
-            output: 'raw'
+            output: 'raw',
+            parser: {
+                types: [
+                    new YAML.Type('!point', {
+                        kind: 'sequence',
+                        resolve: (data: number[]) => {
+                            // tslint:disable-next-line no-null-keyword
+                            return data !== null && data.length === 3;
+                        },
+                        construct: (data: number[]) => {
+                            return new Point(data[0], data[1], data[2]);
+                        },
+                        instanceOf: Point,
+                        represent: (point: any) => {
+                            return [point.x, point.y, point.z];
+                        }
+                    }),
+                    new YAML.Type('!space', {
+                        kind: 'mapping',
+                        construct: (data: any) => {
+                            data = data || {};
+                            return new Space(data.height || 0, data.width || 0, data.points || []);
+                        },
+                        instanceOf: Space
+                    })
+                ],
+            }
         };
         const context = await utils.context('./yaml/options/custom_types.yml', options);
 
@@ -96,24 +98,26 @@ describe('loader options', () => {
                 public result: any) { } // tslint:disable-line no-shadowed-variable
         }
 
-        const options: Partial<loader.Options> = {
+        const options: loader.Options = {
             importRoot: true,
-            types: [
-                ctx => new YAML.Type('!async', {
-                    kind: 'mapping',
-                    resolve: (data: Async) => {
-                        // tslint:disable-next-line no-null-keyword
-                        return data !== null && typeof data.delay === 'number';
-                    },
-                    construct: async (data: Async) => {
-                        ctx.resolveAsync = true;
-                        await new Promise(resolve => { setTimeout(() => resolve(), data.delay); });
-                        return data.result;
-                    },
-                    instanceOf: String
-                })
-            ],
-            output: 'raw'
+            output: 'raw',
+            parser: {
+                types: [
+                    ctx => new YAML.Type('!async', {
+                        kind: 'mapping',
+                        resolve: (data: Async) => {
+                            // tslint:disable-next-line no-null-keyword
+                            return data !== null && typeof data.delay === 'number';
+                        },
+                        construct: async (data: Async) => {
+                            ctx.resolveAsync = true;
+                            await new Promise(resolve => { setTimeout(() => resolve(), data.delay); });
+                            return data.result;
+                        },
+                        instanceOf: String
+                    })
+                ]
+            }
         };
         const context = await utils.context('./yaml/options/async_type.yml', options);
 

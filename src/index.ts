@@ -1,4 +1,4 @@
-import { join, dirname, extname } from 'path';
+import { join, dirname, basename, extname } from 'path';
 import * as YAML  from 'js-yaml';
 import * as utils from 'loader-utils';
 
@@ -7,22 +7,33 @@ export class Context {
     public dependencies = new Set<string>();
     public resolveAsync = false;
     public output: any;
+    public directory: string;
+    public filename: string;
 
     constructor (
         public input: string,
-        public directory: string,
-        public options: Options) { }
+        public path: string,
+        public options: Options)
+    {
+        this.directory = dirname(path);
+        this.filename  = basename(path);
+    }
 }
 
-export type CustomType = ((context: Context) => YAML.Type) | YAML.Type;
-
 export interface Options {
-    importRoot: boolean;
-    importNested: boolean;
-    importKeyword: string;
-    importRawKeyword: string;
-    types: CustomType[];
-    output: 'object' | 'json' | 'yaml' | 'yml' | 'raw';
+    importRoot?: boolean;
+    importNested?: boolean;
+    importKeyword?: string;
+    importRawKeyword?: string;
+    output?: 'object' | 'json' | 'yaml' | 'yml' | 'raw';
+    parser?: ParserOptions;
+}
+
+export interface ParserOptions {
+    types?: (((context: Context) => YAML.Type) | YAML.Type)[];
+    schema?: YAML.Schema | YAML.Schema[] | undefined;
+    allowDuplicate?: boolean;
+    onWarning?: ((error: YAML.YAMLException) => void);
 }
 
 const defaultOptions: Options = {
@@ -30,8 +41,13 @@ const defaultOptions: Options = {
     importNested: true,
     importKeyword: 'import',
     importRawKeyword: 'import-raw',
-    types: [],
-    output: 'object'
+    output: 'object',
+    parser: {
+        types: [],
+        schema: YAML.SAFE_SCHEMA,
+        allowDuplicate: true,
+        onWarning: undefined,
+    }
 };
 
 const request = async (uri: string, isHttps = true): Promise<string> => {
@@ -135,7 +151,7 @@ const parseRootImports = async (context: Context): Promise<Context> => {
 
         let obj: any;
         if (!file.endsWith('.json')) {
-            const { output, dependencies } = await parseImports(new Context(data, dirname(file), context.options));
+            const { output, dependencies } = await parseImports(new Context(data, file, context.options));
             dependencies.forEach(dep => context.dependencies.add(dep));
             obj = output;
         }
@@ -156,7 +172,7 @@ const parseImports = async (context: Context): Promise<Context> => {
     const options = context.options;
     let types: YAML.Type[] = [];
 
-    // !import <file>
+    // !import <file>.
     if (options.importNested && options.importKeyword) {
         types.push(new YAML.Type('!' + options.importKeyword, {
             kind: 'scalar',
@@ -166,14 +182,14 @@ const parseImports = async (context: Context): Promise<Context> => {
                 const { file, data } = await performImport(context.directory, uri);
                 context.dependencies.add(file);
 
-                const { output, dependencies } = await parseImports(new Context(data, dirname(file), context.options));
+                const { output, dependencies } = await parseImports(new Context(data, file, context.options));
                 dependencies.forEach(dep => context.dependencies.add(dep));
                 return output;
             }
         }));
     }
 
-    // !import-raw <file>
+    // !import-raw <file>.
     if (options.importNested && options.importRawKeyword) {
         types.push(new YAML.Type('!' + options.importRawKeyword, {
             kind: 'scalar',
@@ -187,9 +203,9 @@ const parseImports = async (context: Context): Promise<Context> => {
         }));
     }
 
-    // Include custom types
-    if (context.options.types) {
-        for (let type of context.options.types) {
+    // Include custom types.
+    if (options.parser!.types) {
+        for (let type of options.parser!.types!) {
             if (typeof type === 'function')
                 types.push(type(context));
             else
@@ -197,9 +213,21 @@ const parseImports = async (context: Context): Promise<Context> => {
         }
     }
 
+    // Allow custom base schema.
+    let include = !Array.isArray(options.parser!.schema!)
+        ? options.parser!.schema! instanceof YAML.Schema ? [options.parser!.schema!] : []
+        : (options.parser!.schema as YAML.Schema[]).filter(entry => entry instanceof YAML.Schema);
+
+    // Parse documents.
     const docs: any[] = [];
-    const schema = YAML.Schema.create(types);
-    YAML.safeLoadAll(context.input, doc => docs.push(doc), { schema });
+    YAML.safeLoadAll(context.input, doc => docs.push(doc), {
+        filename: context.filename,
+        schema: new YAML.Schema({ include, explicit: types }),
+        json: options.parser!.allowDuplicate,
+        onWarning: options.parser!.onWarning
+    } as any);
+
+    // Do not wrap in an array if only a single document was included.
     const parsed = docs.length > 1 ? docs : docs[0];
 
     // Since the construct function in our import type is async we
@@ -215,10 +243,19 @@ function load(this: any, source: string) {
     if (this.cacheable)
         this.cacheable();
 
-    let options = { ...defaultOptions, ...utils.getOptions(this) };
-    let context = new Context(source, dirname(this.resourcePath), options);
-
     const callback = this.async();
+    const userOptions = utils.getOptions(this);
+
+    let options: Options = {
+        ...defaultOptions,
+        ...userOptions,
+        parser: {
+            ...defaultOptions.parser,
+            ...userOptions.parser
+        }
+    };
+
+    let context = new Context(source, this.resourcePath, options);
     parseImports(context)
         .then(() => {
             context.dependencies.forEach(dep => {
