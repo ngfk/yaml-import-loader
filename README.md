@@ -24,18 +24,18 @@ npm install --save-dev yaml-import-loader
 
 # Nested imports
 key1: !import ./hello_world.yml
-key2: !import module-containing-yaml/array.yml
-key3: !import ./old.json
+key2: !import module/array.yml
+key3: !import https://fake.url/old.json
 html: !import-raw ./plain.html
 
 ### ./hello_world.yml
 hello: world
 
-### module-containing-yaml/array.yml
+### module/array.yml
 - elem1
 - elem2
 
-### ./old.json
+### https://fake.url/old.json
 {
   "jsonKey": "jsonValue"
 }
