@@ -25,6 +25,7 @@
     "yaml",
     "import",
     "loader",
+    "customizable",
     "webpack"
   ],
   "author": "",
