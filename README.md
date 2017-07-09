@@ -60,7 +60,7 @@ hello: world
 
 ## Configuration
 
-This loader is supposed to be used with [Webpack](https://webpack.js.org). The configuration snippet below is not a complete webpack configuration and only demonstrates how to configure this loader. Check the [documentation](https://webpack.js.org/configuration/) for information on how to configure webpack. The `parser` options are passed to the YAML parser: [js-yaml](https://github.com/nodeca/js-yaml). You can find more information about those options in their [README](https://github.com/nodeca/js-yaml/blob/master/README.md).
+This loader is supposed to be used with [Webpack](https://webpack.js.org). The configuration snippet below is not a complete webpack configuration and only demonstrates how to configure this loader. Check the [documentation](https://webpack.js.org/configuration/) for information on how to configure webpack. The `parser` options are passed to the YAML parser: [js-yaml](https://github.com/nodeca/js-yaml). You can find more information about those options on their [README](https://github.com/nodeca/js-yaml/blob/master/README.md).
 
 ### Webpack - module.rules entry
 ```javascript
@@ -94,8 +94,7 @@ This loader is supposed to be used with [Webpack](https://webpack.js.org). The c
       // 'yaml'   -> stringified yaml
       output: 'object',
 
-      // The options below are passed to the parser: js-yaml, see
-      // their repository for more information.
+      // The options below are passed to js-yaml.
       parser: {
 
         // Allows adding custom types, details below.
@@ -122,16 +121,13 @@ This loader is supposed to be used with [Webpack](https://webpack.js.org). The c
 If you set the `importRoot` option to `true`, the yaml-import-loader will allow you to import files at the root level. This will insert the file contents at the import location.
 
 ```yaml
-# Combine actions
-!import ./actions/action1.yml
-!import ./actions/action2.yml
+!import ./root-import1.yml
+!import ./root-import2.yml
 
-# Combine elements
-!import ./elements/element1.yml
-!import ./elements/element2.yml
+nested: !import ./nested-import.yml
 ```
 
-> You must ensure that you do not mix types at the root level (e.g. objects and arrays), every imported file in a root import must be of the same type. If this is not the case parsing will fail.
+> You must ensure that you do not mix types at the root level. If the file contains a mapping at the root level all root imports must import a mapping, if the root level is an array ever root import must import an array. If this is not the case parsing will fail.
 
 ### Custom types
 
@@ -157,14 +153,13 @@ let types = [
 ];
 ```
 
-When passing the types array above to the loader options we are allowed to use the `!async` type in our imported yaml files. Note that the delay here is for demonstration purposes. You can return the result right away instead of returning a `Promise`.
+When passing the types array above to the loader we are allowed to use the `!async` type in our imported yaml files. Note that the delay here is for demonstration purposes, you can return the result directly instead of returning a `Promise`.
 
 ```yaml
 # YAML input
 result: !async
   delay: 1000
   result: 'I will be resolved after 1 second, asynchronously!'
-  watchThisFile: './some/random/file/to/add/to/webpack/watch'
 
 # JSON output
 {
