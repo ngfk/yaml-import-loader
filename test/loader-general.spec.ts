@@ -5,13 +5,15 @@ import * as loader from '../src';
 describe('general features', () => {
 
     it('support parsing directly', async () => {
-        const input = await utils.read('./yaml/plain.yml');
+        const path = await utils.resolve('./yaml/import/nested.yml');
 
-        const output = await loader.parse(input);
+        const result = await loader.parse(path);
 
-        expect(output).eql({
-            hello: 'world',
-            test: 'a'
+        expect(result).eql({
+            value: {
+                hello: 'world',
+                test: 'a'
+            }
         });
     });
 

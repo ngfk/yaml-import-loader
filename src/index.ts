@@ -74,10 +74,21 @@ const request = async (uri: string, isHttps = true): Promise<string> => {
     });
 };
 
+const readFile = async (path: string) => {
+    const fs = await import('fs');
+    return new Promise<string>((resolve, reject) => {
+        fs.readFile(path, (err, data) => {
+            if (err)
+                reject(err);
+            else
+                resolve(data.toString());
+        });
+    });
+};
+
 type ImportResult = { file: string, data: string };
 
 const read = async (dir: string, file: string, checkExt = true): Promise<ImportResult> => {
-    const { readFile } = await import('fs');
     if (checkExt && !extname(file)) {
         let error: any;
         return read(dir, file, false).catch(err => error = err)
@@ -91,14 +102,8 @@ const read = async (dir: string, file: string, checkExt = true): Promise<ImportR
         ? join(dir, file)
         : require.resolve(file);
 
-    return new Promise<ImportResult>((resolve, reject) => {
-        readFile(location, (err, data) => {
-            if (err)
-                reject(err);
-            else
-                resolve({ file: location, data: data.toString() });
-        });
-    });
+    let data = await readFile(location);
+    return { file: location, data };
 };
 
 const performImport = (dir: string, file: string, checkExt = true): Promise<ImportResult> => {
@@ -241,13 +246,14 @@ const parseImports = async (context: Context): Promise<Context> => {
 
 export type parse = {
     (source: string, path: string, options: Options): Promise<Context>;
-    (source: string, options?: Options): Promise<string>;
+    (path: string, options?: Options): Promise<string>;
 };
 
-export const parse: parse = (source: string, pathOrOptions?: string | Options, options?: Options) => {
+export const parse: parse = async (sourceOrPath: string, pathOrOptions?: string | Options, options?: Options) => {
     const isFromLoader = typeof pathOrOptions === 'string';
 
-    const path = isFromLoader ? pathOrOptions as string : '';
+    const source = isFromLoader ? sourceOrPath : await readFile(sourceOrPath);
+    const path = isFromLoader ? pathOrOptions as string : sourceOrPath;
     const opts = (isFromLoader ? options : pathOrOptions as Options) || {};
 
     const result = parseImports(new Context(source, path, {
