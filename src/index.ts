@@ -246,7 +246,7 @@ const parseImports = async (context: Context): Promise<Context> => {
 
 export type parse = {
     (source: string, path: string, options: Options): Promise<Context>;
-    (path: string, options?: Options): Promise<string>;
+    (path: string, options?: Options): Promise<any>;
 };
 
 export const parse: parse = async (sourceOrPath: string, pathOrOptions?: string | Options, options?: Options) => {
