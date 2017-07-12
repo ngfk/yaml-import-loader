@@ -239,6 +239,29 @@ const parseImports = async (context: Context): Promise<Context> => {
     return context;
 };
 
+export type parse = {
+    (source: string, path: string, options: Options): Promise<Context>;
+    (source: string, options?: Options): Promise<string>;
+};
+
+export const parse: parse = (source: string, pathOrOptions?: string | Options, options?: Options) => {
+    const isFromLoader = typeof pathOrOptions === 'string';
+
+    const path = isFromLoader ? pathOrOptions as string : '';
+    const opts = (isFromLoader ? options : pathOrOptions as Options) || {};
+
+    const result = parseImports(new Context(source, path, {
+        ...{ ...defaultOptions, output: isFromLoader ? defaultOptions.output : 'raw' },
+        ...opts,
+        parser: {
+            ...defaultOptions.parser,
+            ...opts.parser
+        }
+    }));
+
+    return isFromLoader ? result : result.then(ctx => ctx.output);
+};
+
 function load(this: any, source: string) {
     if (this.cacheable)
         this.cacheable();
@@ -246,28 +269,18 @@ function load(this: any, source: string) {
     const callback = this.async();
     const userOptions = utils.getOptions(this);
 
-    let options: Options = {
-        ...defaultOptions,
-        ...userOptions,
-        parser: {
-            ...defaultOptions.parser,
-            ...userOptions.parser
-        }
-    };
-
-    let context = new Context(source, this.resourcePath, options);
-    parseImports(context)
-        .then(() => {
+    parse(source, this.resourcePath, userOptions)
+        .then(context => {
             context.dependencies.forEach(dep => {
                 if (!dep.startsWith('http://') && !dep.startsWith('https://'))
                     this.addDependency(dep);
             });
 
-            if (options.output === 'json')
+            if (context.options.output === 'json')
                 callback(undefined, JSON.stringify(context.output));
-            else if (options.output === 'yaml' || options.output === 'yml')
+            else if (context.options.output === 'yaml' || context.options.output === 'yml')
                 callback(undefined, YAML.safeDump(context.output));
-            else if (options.output === 'raw')
+            else if (context.options.output === 'raw')
                 callback(undefined, context.output);
             else
                 callback(undefined, `module.exports = ${JSON.stringify(context.output)};`);
@@ -278,4 +291,6 @@ function load(this: any, source: string) {
         });
 }
 
-module.exports = load;
+const loader: any = load;
+loader.parse = parse;
+module.exports = loader;

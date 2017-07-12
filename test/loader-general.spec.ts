@@ -2,11 +2,22 @@ import { expect }  from 'chai';
 import * as utils  from './utils';
 import * as loader from '../src';
 
-describe('YAML features', () => {
+describe('general features', () => {
 
-    it('support comments', async () => {
+    it('support parsing directly', async () => {
+        const input = await utils.read('./yaml/plain.yml');
+
+        const output = await loader.parse(input);
+
+        expect(output).eql({
+            hello: 'world',
+            test: 'a'
+        });
+    });
+
+    it('YAML support comments', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/yaml/commented.yml', options);
+        const context = await utils.context('./yaml/general/commented.yml', options);
 
         const { result } = await utils.load(context, loader);
 
@@ -15,9 +26,9 @@ describe('YAML features', () => {
         });
     });
 
-    it('support anchors', async () => {
+    it('YAML support anchors', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/yaml/anchor.yml', options);
+        const context = await utils.context('./yaml/general/anchor.yml', options);
 
         const { result } = await utils.load(context, loader);
 
@@ -34,9 +45,9 @@ describe('YAML features', () => {
         });
     });
 
-    it('support inheritance', async () => {
+    it('YAML support inheritance', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/yaml/inheritance.yml', options);
+        const context = await utils.context('./yaml/general/inheritance.yml', options);
 
         const { result } = await utils.load(context, loader);
 
@@ -52,9 +63,9 @@ describe('YAML features', () => {
         });
     });
 
-    it('support folded scalar, block scalar, chomp modifier, indent modifier ', async () => {
+    it('YAML support folded scalar, block scalar, chomp modifier, indent modifier ', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/yaml/multiline.yml', options);
+        const context = await utils.context('./yaml/general/multiline.yml', options);
 
         const { result } = await utils.load(context, loader);
 
@@ -68,9 +79,9 @@ describe('YAML features', () => {
         });
     });
 
-    it('support multi document sources ', async () => {
+    it('YAML support multi document sources ', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/yaml/multi-document.yml', options);
+        const context = await utils.context('./yaml/general/multi-document.yml', options);
 
         const { result, deps } = await utils.load(context, loader);
 
