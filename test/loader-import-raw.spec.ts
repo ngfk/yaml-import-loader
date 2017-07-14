@@ -1,6 +1,6 @@
 import { expect }  from 'chai';
 import * as utils  from './utils';
-import * as loader from '../src';
+import loader from '../src';
 
 describe('loader !import-raw <file>', () => {
 

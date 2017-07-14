@@ -58,7 +58,7 @@
     "eofline": true,
     "indent": [true, "spaces"],
     "max-line-length": [true, 120],
-    "no-default-export": true,
+    // "no-default-export": true,
     "no-mergeable-namespace": true,
     "no-require-imports": true,
     "no-trailing-whitespace": true,

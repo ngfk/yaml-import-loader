@@ -297,6 +297,14 @@ function load(this: any, source: string) {
         });
 }
 
+export interface YamlImportLoader {
+    (source: string): void;
+    parse: parse;
+}
+
 const loader: any = load;
 loader.parse = parse;
-module.exports = loader;
+loader.default = loader;
+
+export default loader as YamlImportLoader;
+module.exports = loader as YamlImportLoader;
