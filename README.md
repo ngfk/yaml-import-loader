@@ -118,7 +118,7 @@ This loader is supposed to be used with [Webpack](https://webpack.js.org). The c
 
 ### Root imports
 
-If you set the `importRoot` option to `true`, the yaml-import-loader will allow you to import files at the root level. This will insert the file contents at the import location.
+If you set the `importRoot` option to `true`, the yaml-import-loader will allow you to import multiple files at the root level. This will insert the file contents at the import location.
 
 ```yaml
 !import ./root-import1.yml
