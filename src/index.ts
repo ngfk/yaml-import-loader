@@ -257,7 +257,8 @@ export const parse: parse = async (sourceOrPath: string, pathOrOptions?: string 
     const opts = (isFromLoader ? options : pathOrOptions as Options) || {};
 
     const result = parseImports(new Context(source, path, {
-        ...{ ...defaultOptions, output: isFromLoader ? defaultOptions.output : 'raw' },
+        ...defaultOptions,
+        output: isFromLoader ? defaultOptions.output : 'raw',
         ...opts,
         parser: {
             ...defaultOptions.parser,
