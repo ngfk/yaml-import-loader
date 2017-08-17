@@ -142,7 +142,7 @@ const parseRootImports = async (context: Context): Promise<Context> => {
     let newLines: string[] = [];
 
     const { importKeyword, importRawKeyword } = context.options;
-    const regex = new RegExp(`^!(${importKeyword}|${importRawKeyword})\\s+['"]?(.*)(\\.ya?ml|\\.json)?['"]?\\s*$`);
+    const regex = new RegExp(`^!(${importKeyword}|${importRawKeyword})\\s+(.*)(\\.ya?ml|\\.json)?['"]?\\s*$`);
 
     for (let line of oldLines) {
         const match = line.match(regex);
@@ -151,7 +151,11 @@ const parseRootImports = async (context: Context): Promise<Context> => {
             continue;
         }
 
-        const { file, data } = await performImport(context.directory, match[2]);
+        let name = match[2];
+        if (name.startsWith('\'') && name.endsWith('\'') || name.startsWith('"') && name.endsWith('"'))
+            name = name.slice(1, -1);
+
+        const { file, data } = await performImport(context.directory, name);
         context.dependencies.add(file);
 
         let obj: any;

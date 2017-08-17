@@ -138,4 +138,34 @@ describe('loader resolving', () => {
 
         mockre.stop('https');
     });
+
+    it('resolve with single quotes', async () => {
+        const options = { output: 'raw', importRoot: true };
+        const context = await utils.context('./yaml/resolve/resolve_single-quote.yml', options);
+
+        const { result, deps } = await utils.load(context, loader);
+
+        expect(deps.length).eq(1);
+        expect(deps).contain(utils.resolve('./yaml/plain.yml'));
+
+        expect(result).eql({
+            hello: 'world',
+            test: 'a'
+        });
+    });
+
+    it('resolve with double quotes', async () => {
+        const options = { output: 'raw', importRoot: true };
+        const context = await utils.context('./yaml/resolve/resolve_double-quote.yml', options);
+
+        const { result, deps } = await utils.load(context, loader);
+
+        expect(deps.length).eq(1);
+        expect(deps).contain(utils.resolve('./yaml/plain.yml'));
+
+        expect(result).eql({
+            hello: 'world',
+            test: 'a'
+        });
+    });
 });
