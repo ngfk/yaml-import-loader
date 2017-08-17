@@ -1,6 +1,6 @@
-import { join, dirname, basename, extname } from 'path';
-import * as YAML  from 'js-yaml';
+import * as YAML from 'js-yaml';
 import * as utils from 'loader-utils';
+import { basename, dirname, extname, join } from 'path';
 
 export class Context {
 

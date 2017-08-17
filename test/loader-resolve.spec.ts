@@ -1,8 +1,9 @@
-import { expect }  from 'chai';
-import * as YAML   from 'js-yaml';
+import { expect } from 'chai';
+import * as YAML from 'js-yaml';
 import * as mockre from 'mock-require';
-import * as utils  from './utils';
+
 import * as loader from '../src';
+import * as utils from './utils';
 
 describe('loader resolving', () => {
 

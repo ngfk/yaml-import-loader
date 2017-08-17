@@ -1,7 +1,8 @@
-import { expect }  from 'chai';
-import * as utils  from './utils';
-import * as YAML   from 'js-yaml';
-import loader, { Options } from '../src';
+import { expect } from 'chai';
+import * as YAML from 'js-yaml';
+
+import * as loader from '../src';
+import * as utils from './utils';
 
 describe('loader options', () => {
 
@@ -19,7 +20,7 @@ describe('loader options', () => {
             }
         }
 
-        const options: Options = {
+        const options: loader.Options = {
             importRoot: true,
             output: 'raw',
             parser: {
@@ -91,7 +92,7 @@ describe('loader options', () => {
                 public result: any) { } // tslint:disable-line no-shadowed-variable
         }
 
-        const options: Options = {
+        const options: loader.Options = {
             importRoot: true,
             output: 'raw',
             parser: {
