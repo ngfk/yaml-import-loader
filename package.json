@@ -2,41 +2,41 @@
     "name": "yaml-import-loader",
     "version": "1.3.5",
     "description": "A customizable YAML loader for Webpack supporting the '!import <file>' type to include different YAML files, and '!import-raw <file>' type to include the raw contents of any file.",
+    "keywords": [
+        "customizable",
+        "import",
+        "loader",
+        "webpack",
+        "yaml",
+        "yml"
+    ],
+    "homepage": "https://github.com/ngfk/yaml-import-loader#readme",
+    "bugs": {
+        "url": "https://github.com/ngfk/yaml-import-loader/issues"
+    },
+    "license": "ISC",
+    "author": "",
+    "files": [
+        "dist"
+    ],
     "main": "dist/index",
     "typings": "dist/index",
-    "scripts": {
-        "start": "npm run test:watch",
-        "build": "npm run clean && tsc",
-        "build:watch": "npm run build -- --watch",
-        "test": "mocha --compilers ts:ts-node/register test/**/*.spec.ts",
-        "test:watch": "npm run test -- --watch --watch-extensions js,yml,yaml,json,html",
-        "clean": "rimraf ./dist",
-        "check": "npm run clean && npm run test && npm run build",
-        "preversion": "npm run check",
-        "prepublishOnly": "npm run check",
-        "prettier": "prettier --write --ignore-path config/.prettierignore **/*"
-    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/ngfk/yaml-import-loader.git"
     },
-    "keywords": [
-        "yml",
-        "yaml",
-        "import",
-        "loader",
-        "customizable",
-        "webpack"
-    ],
-    "author": "",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/ngfk/yaml-import-loader/issues"
+    "scripts": {
+        "build": "npm run clean && tsc",
+        "build:watch": "npm run build -- --watch",
+        "check": "npm run clean && npm run test && npm run build",
+        "clean": "rimraf ./dist",
+        "prepublishOnly": "npm run check",
+        "start": "npm run test:watch",
+        "test": "mocha --compilers ts:ts-node/register test/**/*.spec.ts",
+        "test:watch": "npm run test -- --watch --watch-extensions js,yml,yaml,json,html",
+        "prettier": "prettier --write --ignore-path config/.prettierignore **/*",
+        "preversion": "npm run check"
     },
-    "homepage": "https://github.com/ngfk/yaml-import-loader#readme",
-    "files": [
-        "dist"
-    ],
     "dependencies": {
         "js-yaml": "^3.10.0",
         "loader-utils": "^1.1.0"
