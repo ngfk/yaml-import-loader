@@ -14,8 +14,8 @@
     "bugs": {
         "url": "https://github.com/ngfk/yaml-import-loader/issues"
     },
-    "license": "ISC",
-    "author": "",
+    "license": "MIT",
+    "author": "N.G.F. Koster <ngf.koster@outlook.com>",
     "files": [
         "dist"
     ],
