@@ -62,7 +62,7 @@ describe('loader options', () => {
         };
 
         const context = await utils.context(
-            './yaml/options/custom_types.yml',
+            './data/yaml/options/custom_types.yml',
             options
         );
 
@@ -127,7 +127,7 @@ describe('loader options', () => {
             }
         };
         const context = await utils.context(
-            './yaml/options/async_type.yml',
+            './data/yaml/options/async_type.yml',
             options
         );
 
@@ -141,7 +141,7 @@ describe('loader options', () => {
 
     it('default output should be exported js object', async () => {
         const options = { importRoot: true };
-        const context = await utils.context('./yaml/plain.yml', options);
+        const context = await utils.context('./data/yaml/plain.yml', options);
         const start = 'module.exports = ';
         const end = ';';
 
@@ -160,7 +160,7 @@ describe('loader options', () => {
 
     it('allow json output', async () => {
         const options = { importRoot: true, output: 'json' };
-        const context = await utils.context('./yaml/plain.yml', options);
+        const context = await utils.context('./data/yaml/plain.yml', options);
 
         const { result } = await utils.load(context, loader);
         const exported = JSON.parse(result);
@@ -173,7 +173,7 @@ describe('loader options', () => {
 
     it('allow yaml output', async () => {
         const options = { importRoot: true, output: 'yaml' };
-        const context = await utils.context('./yaml/plain.yml', options);
+        const context = await utils.context('./data/yaml/plain.yml', options);
 
         const { result } = await utils.load(context, loader);
         const exported = YAML.safeLoad(result);
@@ -186,7 +186,7 @@ describe('loader options', () => {
 
     it('allow yml output', async () => {
         const options = { importRoot: true, output: 'yml' };
-        const context = await utils.context('./yaml/plain.yml', options);
+        const context = await utils.context('./data/yaml/plain.yml', options);
 
         const { result } = await utils.load(context, loader);
         const exported = YAML.safeLoad(result);
@@ -200,7 +200,7 @@ describe('loader options', () => {
     it('allow duplicate keys by default', async () => {
         const options = { importRoot: true, output: 'raw' };
         const context = await utils.context(
-            './yaml/options/duplicate.yml',
+            './data/yaml/options/duplicate.yml',
             options
         );
 
@@ -216,7 +216,7 @@ describe('loader options', () => {
             parser: { allowDuplicate: false }
         };
         const context = await utils.context(
-            './yaml/options/duplicate.yml',
+            './data/yaml/options/duplicate.yml',
             options
         );
 

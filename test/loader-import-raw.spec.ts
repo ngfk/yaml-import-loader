@@ -7,7 +7,7 @@ describe('loader !import-raw <file>', () => {
     it('allow raw root import', async () => {
         const options = { importRoot: true, output: 'raw' };
         const context = await utils.context(
-            './yaml/import-raw/root.yml',
+            './data/yaml/import-raw/root.yml',
             options
         );
 
@@ -19,7 +19,7 @@ describe('loader !import-raw <file>', () => {
     it('allow raw nested import', async () => {
         const options = { output: 'raw' };
         const context = await utils.context(
-            './yaml/import-raw/nested.yml',
+            './data/yaml/import-raw/nested.yml',
             options
         );
 
@@ -35,7 +35,7 @@ describe('loader !import-raw <file>', () => {
     it('allow raw mixed import', async () => {
         const options = { importRoot: true, output: 'raw' };
         const context = await utils.context(
-            './yaml/import-raw/mixed.yml',
+            './data/yaml/import-raw/mixed.yml',
             options
         );
 

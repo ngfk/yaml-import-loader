@@ -5,7 +5,7 @@ import * as utils from './utils';
 
 describe('general features', () => {
     it('support parsing directly', async () => {
-        const path = await utils.resolve('./yaml/import/nested.yml');
+        const path = await utils.resolve('./data/yaml/import/nested.yml');
 
         const result = await loader.parse(path);
 
@@ -20,7 +20,7 @@ describe('general features', () => {
     it('YAML support comments', async () => {
         const options = { output: 'raw' };
         const context = await utils.context(
-            './yaml/general/commented.yml',
+            './data/yaml/general/commented.yml',
             options
         );
 
@@ -34,7 +34,7 @@ describe('general features', () => {
     it('YAML support anchors', async () => {
         const options = { output: 'raw' };
         const context = await utils.context(
-            './yaml/general/anchor.yml',
+            './data/yaml/general/anchor.yml',
             options
         );
 
@@ -56,7 +56,7 @@ describe('general features', () => {
     it('YAML support inheritance', async () => {
         const options = { output: 'raw' };
         const context = await utils.context(
-            './yaml/general/inheritance.yml',
+            './data/yaml/general/inheritance.yml',
             options
         );
 
@@ -77,7 +77,7 @@ describe('general features', () => {
     it('YAML support folded scalar, block scalar, chomp modifier, indent modifier ', async () => {
         const options = { output: 'raw' };
         const context = await utils.context(
-            './yaml/general/multiline.yml',
+            './data/yaml/general/multiline.yml',
             options
         );
 
@@ -99,7 +99,7 @@ describe('general features', () => {
     it('YAML support multi document sources ', async () => {
         const options = { output: 'raw' };
         const context = await utils.context(
-            './yaml/general/multi-document.yml',
+            './data/yaml/general/multi-document.yml',
             options
         );
 
