@@ -72,12 +72,15 @@ const request = async (uri: string): Promise<string> => {
  * Reads data from a file returning the content as a string.
  * @param path The path to read data from.
  */
-const readFile = async (path: string) => {
+const readFile = async (path: string): Promise<string> => {
     const { readFile: nodeReadFile } = await import('fs');
-    const { promisify } = await import('util');
 
-    const data = await promisify(nodeReadFile)(path);
-    return data.toString();
+    return new Promise<string>((resolve, reject) => {
+        nodeReadFile(path, (err, data) => {
+            if (err) reject(err);
+            else resolve(data.toString());
+        });
+    });
 };
 
 /**
