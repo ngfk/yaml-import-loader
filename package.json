@@ -14,7 +14,8 @@
     "clean": "rimraf ./dist",
     "check": "npm run clean && npm run lint && npm run test && npm run build",
     "preversion": "npm run check",
-    "prepublishOnly": "npm run check"
+    "prepublishOnly": "npm run check",
+    "prettier": "prettier --write --ignore-path config/.prettierignore **/*"
   },
   "repository": {
     "type": "git",
@@ -50,6 +51,7 @@
     "chai": "^4.1.2",
     "mocha": "^3.5.3",
     "mock-require": "^2.0.2",
+    "prettier": "^1.11.1",
     "rimraf": "^2.6.2",
     "ts-node": "^3.3.0",
     "tslint": "^5.7.0",
