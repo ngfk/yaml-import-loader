@@ -35,7 +35,6 @@ describe('loader options', () => {
                     new YAML.Type('!point', {
                         kind: 'sequence',
                         resolve: (data: number[]) => {
-                            // tslint:disable-next-line no-null-keyword
                             return data !== null && data.length === 3;
                         },
                         construct: (data: number[]) => {
@@ -98,7 +97,7 @@ describe('loader options', () => {
 
     it('allow custom async types', async () => {
         class Async {
-            constructor(public delay: number, public result: any) {} // tslint:disable-line no-shadowed-variable
+            constructor(public delay: number, public result: any) {}
         }
 
         const options: loader.Options = {
@@ -110,7 +109,6 @@ describe('loader options', () => {
                         new YAML.Type('!async', {
                             kind: 'mapping',
                             resolve: (data: Async) => {
-                                // tslint:disable-next-line no-null-keyword
                                 return (
                                     data !== null &&
                                     typeof data.delay === 'number'

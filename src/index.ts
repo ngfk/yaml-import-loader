@@ -125,7 +125,6 @@ const resolvePromises = (value: any): Promise<any> => {
     if (value instanceof Array)
         return Promise.all(value.map(entry => resolvePromises(entry)));
 
-    // tslint:disable-next-line no-null-keyword
     if (typeof value === 'object' && value !== null) {
         const keys = Object.keys(value);
 
