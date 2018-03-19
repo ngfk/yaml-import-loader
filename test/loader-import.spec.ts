@@ -4,7 +4,6 @@ import * as loader from '../src';
 import * as utils from './utils';
 
 describe('loader !import <file>', () => {
-
     it('no change without import keywords', async () => {
         const options = { output: 'raw' };
         const context = await utils.context('./yaml/plain.yml', options);
@@ -24,9 +23,7 @@ describe('loader !import <file>', () => {
 
         const { result, deps } = await utils.load(context, loader);
 
-        expect(deps).eql([
-            utils.resolve('./yaml/plain.yml')
-        ]);
+        expect(deps).eql([utils.resolve('./yaml/plain.yml')]);
         expect(result).eql({
             hello: 'world',
             test: 'a',
@@ -36,13 +33,14 @@ describe('loader !import <file>', () => {
 
     it('allow nested import', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/import/nested.yml', options);
+        const context = await utils.context(
+            './yaml/import/nested.yml',
+            options
+        );
 
         const { result, deps } = await utils.load(context, loader);
 
-        expect(deps).eql([
-            utils.resolve('./yaml/plain.yml')
-        ]);
+        expect(deps).eql([utils.resolve('./yaml/plain.yml')]);
         expect(result).eql({
             value: {
                 hello: 'world',
@@ -67,11 +65,7 @@ describe('loader !import <file>', () => {
                 hello: 'world',
                 test: 'a'
             },
-            other: [
-                'value1',
-                'value2',
-                'value3',
-            ]
+            other: ['value1', 'value2', 'value3']
         });
     });
 
@@ -109,10 +103,7 @@ describe('loader !import <file>', () => {
                 jsonKey1: 'jsonValue1',
                 jsonKey2: 'jsonValue2'
             },
-            array: [
-                'elem1',
-                'elem2'
-            ]
+            array: ['elem1', 'elem2']
         });
     });
 });

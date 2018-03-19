@@ -6,7 +6,6 @@ const DONE = Symbol('done');
 const DATA = Symbol('data');
 
 class Context {
-
     public resourcePath: string;
     public query: any;
 
@@ -33,23 +32,27 @@ class Context {
 }
 
 export const load = (ctx: Context, loader: any) => {
-    return new Promise<{ result: string, deps: string[], source: string }>((res, rej) => {
-        (ctx as any)[DONE] = (e: any, r: string, d: string[]) => {
-            if (e)
-                rej(e);
-            else {
-                res({
-                    result: r,
-                    deps: d,
-                    source: (ctx as any)[DATA]
-                });
-            }
-        };
-        loader.call(ctx, (ctx as any)[DATA]);
-    });
+    return new Promise<{ result: string; deps: string[]; source: string }>(
+        (res, rej) => {
+            (ctx as any)[DONE] = (e: any, r: string, d: string[]) => {
+                if (e) rej(e);
+                else {
+                    res({
+                        result: r,
+                        deps: d,
+                        source: (ctx as any)[DATA]
+                    });
+                }
+            };
+            loader.call(ctx, (ctx as any)[DATA]);
+        }
+    );
 };
 
-export const context = async <T extends {}>(file: string, options: T): Promise<Context> => {
+export const context = async <T extends {}>(
+    file: string,
+    options: T
+): Promise<Context> => {
     const filePath = path.resolve(__dirname, file);
     const data = await read(filePath);
 
@@ -63,10 +66,8 @@ export const context = async <T extends {}>(file: string, options: T): Promise<C
 export const read = (file: string): Promise<string> => {
     return new Promise<string>((res, rej) => {
         fs.readFile(path.resolve(__dirname, file), (err, data) => {
-            if (err)
-                rej(err);
-            else
-                res(data.toString());
+            if (err) rej(err);
+            else res(data.toString());
         });
     });
 };

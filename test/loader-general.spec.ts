@@ -4,7 +4,6 @@ import * as loader from '../src';
 import * as utils from './utils';
 
 describe('general features', () => {
-
     it('support parsing directly', async () => {
         const path = await utils.resolve('./yaml/import/nested.yml');
 
@@ -20,7 +19,10 @@ describe('general features', () => {
 
     it('YAML support comments', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/general/commented.yml', options);
+        const context = await utils.context(
+            './yaml/general/commented.yml',
+            options
+        );
 
         const { result } = await utils.load(context, loader);
 
@@ -31,7 +33,10 @@ describe('general features', () => {
 
     it('YAML support anchors', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/general/anchor.yml', options);
+        const context = await utils.context(
+            './yaml/general/anchor.yml',
+            options
+        );
 
         const { result } = await utils.load(context, loader);
 
@@ -50,7 +55,10 @@ describe('general features', () => {
 
     it('YAML support inheritance', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/general/inheritance.yml', options);
+        const context = await utils.context(
+            './yaml/general/inheritance.yml',
+            options
+        );
 
         const { result } = await utils.load(context, loader);
 
@@ -68,7 +76,10 @@ describe('general features', () => {
 
     it('YAML support folded scalar, block scalar, chomp modifier, indent modifier ', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/general/multiline.yml', options);
+        const context = await utils.context(
+            './yaml/general/multiline.yml',
+            options
+        );
 
         const { result } = await utils.load(context, loader);
 
@@ -76,23 +87,25 @@ describe('general features', () => {
             street1: '123 Tornado Alley\nSuite 16\n',
             street2: '123 Tornado Alley\nSuite 16\n\n',
             street3: '123 Tornado Alley\nSuite 16',
-            specialDelivery1: 'Follow the Yellow Brick Road to the Emerald City.\n',
-            specialDelivery2: 'Follow the Yellow Brick Road to the Emerald City.\n\n',
-            specialDelivery3: 'Follow the Yellow Brick Road to the Emerald City.'
+            specialDelivery1:
+                'Follow the Yellow Brick Road to the Emerald City.\n',
+            specialDelivery2:
+                'Follow the Yellow Brick Road to the Emerald City.\n\n',
+            specialDelivery3:
+                'Follow the Yellow Brick Road to the Emerald City.'
         });
     });
 
     it('YAML support multi document sources ', async () => {
         const options = { output: 'raw' };
-        const context = await utils.context('./yaml/general/multi-document.yml', options);
+        const context = await utils.context(
+            './yaml/general/multi-document.yml',
+            options
+        );
 
         const { result, deps } = await utils.load(context, loader);
 
         expect(deps.length).eq(0);
-        expect(result).eql([
-            { document: 1 },
-            { document: 2 },
-            { document: 3 },
-        ]);
+        expect(result).eql([{ document: 1 }, { document: 2 }, { document: 3 }]);
     });
 });

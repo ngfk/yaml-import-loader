@@ -5,16 +5,23 @@ import * as loader from '../src';
 import * as utils from './utils';
 
 describe('loader options', () => {
-
     it('allow custom types', async () => {
         class Point {
-            constructor(public x: number, public y: number, public z: number) { }
+            constructor(public x: number, public y: number, public z: number) {}
         }
 
         class Space {
-            constructor(public height: number, public width: number, public points: Point[]) {
+            constructor(
+                public height: number,
+                public width: number,
+                public points: Point[]
+            ) {
                 if (points) {
-                    if (!points.every((point: Point) => { return point instanceof Point; }))
+                    if (
+                        !points.every((point: Point) => {
+                            return point instanceof Point;
+                        })
+                    )
                         throw new Error('A non-Point inside a points array!');
                 }
             }
@@ -43,15 +50,22 @@ describe('loader options', () => {
                         kind: 'mapping',
                         construct: (data: any) => {
                             data = data || {};
-                            return new Space(data.height || 0, data.width || 0, data.points || []);
+                            return new Space(
+                                data.height || 0,
+                                data.width || 0,
+                                data.points || []
+                            );
                         },
                         instanceOf: Space
                     })
-                ],
+                ]
             }
         };
 
-        const context = await utils.context('./yaml/options/custom_types.yml', options);
+        const context = await utils.context(
+            './yaml/options/custom_types.yml',
+            options
+        );
 
         const { result, deps } = await utils.load(context, loader);
 
@@ -71,10 +85,7 @@ describe('loader options', () => {
                 {
                     height: 64,
                     width: 128,
-                    points: [
-                        { x: 12, y: 43, z: 0 },
-                        { x: 1, y: 4, z: 90 }
-                    ]
+                    points: [{ x: 12, y: 43, z: 0 }, { x: 1, y: 4, z: 90 }]
                 },
                 {
                     height: 0,
@@ -85,11 +96,9 @@ describe('loader options', () => {
         });
     });
 
-    it ('allow custom async types', async () => {
+    it('allow custom async types', async () => {
         class Async {
-            constructor (
-                public delay: number,
-                public result: any) { } // tslint:disable-line no-shadowed-variable
+            constructor(public delay: number, public result: any) {} // tslint:disable-line no-shadowed-variable
         }
 
         const options: loader.Options = {
@@ -97,23 +106,32 @@ describe('loader options', () => {
             output: 'raw',
             parser: {
                 types: [
-                    ctx => new YAML.Type('!async', {
-                        kind: 'mapping',
-                        resolve: (data: Async) => {
-                            // tslint:disable-next-line no-null-keyword
-                            return data !== null && typeof data.delay === 'number';
-                        },
-                        construct: async (data: Async) => {
-                            ctx.resolveAsync = true;
-                            await new Promise(resolve => { setTimeout(() => resolve(), data.delay); });
-                            return data.result;
-                        },
-                        instanceOf: String
-                    })
+                    ctx =>
+                        new YAML.Type('!async', {
+                            kind: 'mapping',
+                            resolve: (data: Async) => {
+                                // tslint:disable-next-line no-null-keyword
+                                return (
+                                    data !== null &&
+                                    typeof data.delay === 'number'
+                                );
+                            },
+                            construct: async (data: Async) => {
+                                ctx.resolveAsync = true;
+                                await new Promise(resolve => {
+                                    setTimeout(() => resolve(), data.delay);
+                                });
+                                return data.result;
+                            },
+                            instanceOf: String
+                        })
                 ]
             }
         };
-        const context = await utils.context('./yaml/options/async_type.yml', options);
+        const context = await utils.context(
+            './yaml/options/async_type.yml',
+            options
+        );
 
         const { result, deps } = await utils.load(context, loader);
 
@@ -126,17 +144,19 @@ describe('loader options', () => {
     it('default output should be exported js object', async () => {
         const options = { importRoot: true };
         const context = await utils.context('./yaml/plain.yml', options);
-        const start   = 'module.exports = ';
-        const end     = ';';
+        const start = 'module.exports = ';
+        const end = ';';
 
         const { result } = await utils.load(context, loader);
-        const exported = JSON.parse(result.substring(start.length, result.length - end.length));
+        const exported = JSON.parse(
+            result.substring(start.length, result.length - end.length)
+        );
 
         expect(result.startsWith(start)).eq(true);
         expect(result.endsWith(end)).eq(true);
         expect(exported).eql({
             hello: 'world',
-            test: 'a',
+            test: 'a'
         });
     });
 
@@ -149,7 +169,7 @@ describe('loader options', () => {
 
         expect(exported).eql({
             hello: 'world',
-            test: 'a',
+            test: 'a'
         });
     });
 
@@ -162,7 +182,7 @@ describe('loader options', () => {
 
         expect(exported).eql({
             hello: 'world',
-            test: 'a',
+            test: 'a'
         });
     });
 
@@ -175,24 +195,35 @@ describe('loader options', () => {
 
         expect(exported).eql({
             hello: 'world',
-            test: 'a',
+            test: 'a'
         });
     });
 
     it('allow duplicate keys by default', async () => {
         const options = { importRoot: true, output: 'raw' };
-        const context = await utils.context('./yaml/options/duplicate.yml', options);
+        const context = await utils.context(
+            './yaml/options/duplicate.yml',
+            options
+        );
 
         const { result } = await utils.load(context, loader);
 
-        expect(result).eql({ key: 'new value', });
+        expect(result).eql({ key: 'new value' });
     });
 
     it('allow disabling duplicate keys', async () => {
-        const options = { importRoot: true, output: 'raw', parser: { allowDuplicate: false } };
-        const context = await utils.context('./yaml/options/duplicate.yml', options);
+        const options = {
+            importRoot: true,
+            output: 'raw',
+            parser: { allowDuplicate: false }
+        };
+        const context = await utils.context(
+            './yaml/options/duplicate.yml',
+            options
+        );
 
-        return utils.load(context, loader)
+        return utils
+            .load(context, loader)
             .then(() => expect(false).eq(true))
             .catch(err => {
                 expect(err).instanceOf(YAML.YAMLException);
