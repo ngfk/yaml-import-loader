@@ -6,7 +6,11 @@
         "**/CVS": true,
         "**/.DS_Store": true,
 
-        "prettier.config.js": true
+        "node_modules": true,
+        ".gitignore": true,
+        "LICENSE": true,
+        "prettier.config.js": true,
+        "yarn.lock": true
     },
     "prettier.ignorePath": "config/.prettierignore"
 }
