@@ -49,37 +49,60 @@ const defaultOptions: Options = {
     }
 };
 
-const request = async (uri: string, isHttps = true): Promise<string> => {
-    const http = await import('http');
-    const https = await import('https');
+/**
+ * Requests data from the specified uri returning the content as a string.
+ * @param uri The uri to request data from.
+ */
+const request = async (uri: string): Promise<string> => {
+    const { get: getHttp } = await import('http');
+    const { get: getHttps } = await import('https');
+    const get = uri.startsWith('https://') ? getHttps : getHttp;
 
     return new Promise<string>((resolve, reject) => {
         let result = '';
-
-        if (isHttps) {
-            https.get(uri, res => {
-                res.on('data', data => (result += data));
-                res.on('end', () => resolve(result));
-                res.on('error', err => reject(err));
-            });
-        } else {
-            http.get(uri, res => {
-                res.on('data', data => (result += data));
-                res.on('end', () => resolve(result));
-                res.on('error', err => reject(err));
-            });
-        }
+        get(uri, res => {
+            res.on('data', data => (result += data));
+            res.on('end', () => resolve(result));
+            res.on('error', err => reject(err));
+        });
     });
 };
 
+/**
+ * Reads data from a file returning the content as a string.
+ * @param path The path to read data from.
+ */
 const readFile = async (path: string) => {
-    const fs = await import('fs');
-    return new Promise<string>((resolve, reject) => {
-        fs.readFile(path, (err, data) => {
-            if (err) reject(err);
-            else resolve(data.toString());
-        });
-    });
+    const { readFile: nodeReadFile } = await import('fs');
+    const { promisify } = await import('util');
+
+    const data = await promisify(nodeReadFile)(path);
+    return data.toString();
+};
+
+/**
+ * Finds nested promises within the provided value/object and returns one
+ * promise that resolves when all nested promises are resolved.
+ * @param value The value to promisify.
+ */
+const resolvePromises = async <T>(value: T): Promise<T> => {
+    if (value instanceof Promise) return value;
+
+    if (value instanceof Array) {
+        const elements = value.map(entry => resolvePromises(entry));
+        return Promise.all(elements) as any;
+    }
+
+    if (typeof value === 'object' && value !== null) {
+        let result: any = {};
+        for (const key of Object.keys(value)) {
+            const property = await resolvePromises((value as any)[key]);
+            result[key] = property;
+        }
+        return result;
+    }
+
+    return value;
 };
 
 type ImportResult = { file: string; data: string };
@@ -113,31 +136,10 @@ const performImport = (
     checkExt = true
 ): Promise<ImportResult> => {
     if (file.startsWith('https://'))
-        return request(file, true).then(data => ({ file, data }));
+        return request(file).then(data => ({ file, data }));
     else if (file.startsWith('http://'))
-        return request(file, false).then(data => ({ file, data }));
+        return request(file).then(data => ({ file, data }));
     else return read(dir, file, checkExt);
-};
-
-const resolvePromises = (value: any): Promise<any> => {
-    if (value instanceof Promise) return value;
-
-    if (value instanceof Array)
-        return Promise.all(value.map(entry => resolvePromises(entry)));
-
-    if (typeof value === 'object' && value !== null) {
-        const keys = Object.keys(value);
-
-        return Promise.all(keys.map(key => resolvePromises(value[key]))).then(
-            properties => {
-                let obj: any = {};
-                keys.forEach((key, i) => (obj[key] = properties[i]));
-                return obj;
-            }
-        );
-    }
-
-    return Promise.resolve(value);
 };
 
 const parseRootImports = async (context: Context): Promise<Context> => {
