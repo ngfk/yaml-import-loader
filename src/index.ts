@@ -2,40 +2,58 @@ import * as YAML from 'js-yaml';
 import * as utils from 'loader-utils';
 import { basename, dirname, extname, join } from 'path';
 
-export class Context {
-    public dependencies = new Set<string>();
-    public resolveAsync = false;
-    public output: any;
-    public directory: string;
-    public filename: string;
-
-    constructor(
-        public input: string,
-        public path: string,
-        public options: Options
-    ) {
-        this.directory = dirname(path);
-        this.filename = basename(path);
-    }
+export interface BaseOptions {
+    importRoot: boolean;
+    importNested: boolean;
+    importKeyword: string;
+    importRawKeyword: string;
+    output: 'object' | 'json' | 'yaml' | 'yml' | 'raw';
 }
 
-export interface Options {
-    importRoot?: boolean;
-    importNested?: boolean;
-    importKeyword?: string;
-    importRawKeyword?: string;
-    output?: 'object' | 'json' | 'yaml' | 'yml' | 'raw';
-    parser?: ParserOptions;
+export interface InternalOptions extends Partial<BaseOptions> {
+    parser: InternalParserOptions;
 }
 
-export interface ParserOptions {
-    types?: (((context: Context) => YAML.Type) | YAML.Type)[];
-    schema?: YAML.Schema | YAML.Schema[] | undefined;
-    allowDuplicate?: boolean;
+export interface InternalParserOptions {
+    types: (((context: Context) => YAML.Type) | YAML.Type)[];
+    schema: YAML.Schema | YAML.Schema[] | undefined;
+    allowDuplicate: boolean;
     onWarning?: ((error: YAML.YAMLException) => void);
 }
 
-const defaultOptions: Options = {
+export interface Options extends Partial<BaseOptions> {
+    parser?: ParserOptions;
+}
+
+export interface ParserOptions extends Partial<InternalParserOptions> {}
+
+export class Context {
+    public input: string;
+    public output: any;
+    public dependencies: Set<string>;
+
+    public path: string;
+    public directory: string;
+    public filename: string;
+
+    public options: InternalOptions;
+    public resolveAsync: boolean;
+
+    constructor(input: string, path: string, options: InternalOptions) {
+        this.input = input;
+        this.output = {};
+        this.dependencies = new Set<string>();
+
+        this.path = path;
+        this.directory = dirname(path);
+        this.filename = basename(path);
+
+        this.options = options;
+        this.resolveAsync = false;
+    }
+}
+
+const defaultOptions: InternalOptions = {
     importRoot: false,
     importNested: true,
     importKeyword: 'import',
@@ -84,47 +102,35 @@ const readFile = async (path: string): Promise<string> => {
 };
 
 /**
- * Finds nested promises within the provided value/object and returns one
- * promise that resolves when all nested promises are resolved.
- * @param value The value to promisify.
+ * Retrieves the file content and the location of the specified file.
+ * @param dir The working directory
+ * @param file The file path
+ * @param checkExt Whether to try different extensions
  */
-const resolvePromises = async <T>(value: T): Promise<T> => {
-    if (value instanceof Promise) return value;
-
-    if (value instanceof Array) {
-        const elements = value.map(entry => resolvePromises(entry));
-        return Promise.all(elements) as any;
-    }
-
-    if (typeof value === 'object' && value !== null) {
-        let result: any = {};
-        for (const key of Object.keys(value)) {
-            const property = await resolvePromises((value as any)[key]);
-            result[key] = property;
-        }
-        return result;
-    }
-
-    return value;
-};
-
-type ImportResult = { file: string; data: string };
-
-const read = async (
+const importFile = async (
     dir: string,
     file: string,
     checkExt = true
-): Promise<ImportResult> => {
-    if (checkExt && !extname(file)) {
-        let error: any;
-        return read(dir, file, false)
-            .catch(err => (error = err))
-            .then(_ => read(dir, file + '.yml'))
-            .catch(_ => read(dir, file + '.yaml'))
-            .catch(_ => read(dir, file + '.json'))
-            .catch(_ => Promise.reject(error));
+): Promise<{ file: string; data: string }> => {
+    // Resolve remote imports
+    if (file.startsWith('http://') || file.startsWith('https://')) {
+        const data = await request(file);
+        return { file, data };
     }
 
+    // Try importing the file with different extensions if none is provided
+    if (checkExt && !extname(file)) {
+        let error: any;
+        return importFile(dir, file, false)
+            .catch(err => (error = err))
+            .then(() => importFile(dir, file + '.yml'))
+            .catch(() => importFile(dir, file + '.yaml'))
+            .catch(() => importFile(dir, file + '.json'))
+            .catch(() => Promise.reject(error));
+    }
+
+    // If the file name starts with a '.' it will be a local import. Otherwise
+    // it is a module import which must be resolved using require.
     let location = file.startsWith('.')
         ? join(dir, file)
         : require.resolve(file);
@@ -133,26 +139,38 @@ const read = async (
     return { file: location, data };
 };
 
-const performImport = (
-    dir: string,
-    file: string,
-    checkExt = true
-): Promise<ImportResult> => {
-    if (file.startsWith('https://'))
-        return request(file).then(data => ({ file, data }));
-    else if (file.startsWith('http://'))
-        return request(file).then(data => ({ file, data }));
-    else return read(dir, file, checkExt);
+/**
+ * Finds nested promises within the provided value/object and returns one
+ * promise that resolves when all nested promises are resolved.
+ * @param value The value to promisify.
+ */
+const resolveNestedPromises = async <T>(value: T): Promise<T> => {
+    if (value instanceof Promise) return value;
+
+    if (value instanceof Array) {
+        const elements = value.map(entry => resolveNestedPromises(entry));
+        return Promise.all(elements) as any;
+    }
+
+    if (typeof value === 'object' && value !== null) {
+        let result: any = {};
+        for (const key of Object.keys(value)) {
+            const property = await resolveNestedPromises((value as any)[key]);
+            result[key] = property;
+        }
+        return result;
+    }
+
+    return value;
 };
 
 const parseRootImports = async (context: Context): Promise<Context> => {
     let oldLines = context.input.split('\n');
     let newLines: string[] = [];
 
-    const { importKeyword, importRawKeyword } = context.options;
-    const regex = new RegExp(
-        `^!(${importKeyword}|${importRawKeyword})\\s+(.*)(\\.ya?ml|\\.json)?['"]?\\s*$`
-    );
+    const { importKeyword: k, importRawKeyword: rk } = context.options;
+    const regexStr = `^!(${k}|${rk})\\s+(.*)(\\.ya?ml|\\.json)?['"]?\\s*$`;
+    const regex = new RegExp(regexStr);
 
     for (let line of oldLines) {
         const match = line.match(regex);
@@ -168,7 +186,7 @@ const parseRootImports = async (context: Context): Promise<Context> => {
         )
             name = name.slice(1, -1);
 
-        const { file, data } = await performImport(context.directory, name);
+        const { file, data } = await importFile(context.directory, name);
         context.dependencies.add(file);
 
         let obj: any;
@@ -201,7 +219,7 @@ const parseImports = async (context: Context): Promise<Context> => {
                 construct: async (uri: string) => {
                     context.resolveAsync = true;
 
-                    const { file, data } = await performImport(
+                    const { file, data } = await importFile(
                         context.directory,
                         uri
                     );
@@ -225,7 +243,7 @@ const parseImports = async (context: Context): Promise<Context> => {
                 construct: async (uri: string) => {
                     context.resolveAsync = true;
 
-                    const { file, data } = await performImport(
+                    const { file, data } = await importFile(
                         context.directory,
                         uri
                     );
@@ -237,19 +255,19 @@ const parseImports = async (context: Context): Promise<Context> => {
     }
 
     // Include custom types.
-    if (options.parser!.types) {
-        for (let type of options.parser!.types!) {
+    if (options.parser.types) {
+        for (let type of options.parser.types) {
             if (typeof type === 'function') types.push(type(context));
             else types.push(type);
         }
     }
 
     // Allow custom base schema.
-    let include = !Array.isArray(options.parser!.schema!)
-        ? options.parser!.schema! instanceof YAML.Schema
-            ? [options.parser!.schema!]
+    let include = !Array.isArray(options.parser.schema)
+        ? options.parser.schema instanceof YAML.Schema
+            ? [options.parser.schema]
             : []
-        : (options.parser!.schema as YAML.Schema[]).filter(
+        : (options.parser.schema as YAML.Schema[]).filter(
               entry => entry instanceof YAML.Schema
           );
 
@@ -258,8 +276,8 @@ const parseImports = async (context: Context): Promise<Context> => {
     YAML.safeLoadAll(context.input, doc => docs.push(doc), {
         filename: context.filename,
         schema: new YAML.Schema({ include, explicit: types }),
-        json: options.parser!.allowDuplicate,
-        onWarning: options.parser!.onWarning
+        json: options.parser.allowDuplicate,
+        onWarning: options.parser.onWarning
     } as any);
 
     // Do not wrap in an array if only a single document was included.
@@ -268,7 +286,7 @@ const parseImports = async (context: Context): Promise<Context> => {
     // Since the construct function in our import type is async we
     // could have nested promises, these have to be resolved.
     context.output = context.resolveAsync
-        ? await resolvePromises(parsed)
+        ? await resolveNestedPromises(parsed)
         : parsed;
 
     return context;
@@ -280,63 +298,62 @@ export type parse = {
 };
 
 export const parse: parse = async (
-    sourceOrPath: string,
-    pathOrOptions?: string | Options,
-    options?: Options
+    param1: string,
+    param2?: string | Options,
+    param3?: Options
 ) => {
-    const isFromLoader = typeof pathOrOptions === 'string';
+    // Retrieve parameters
+    const hasSource = typeof param2 === 'string';
+    const source = hasSource ? param1 : await readFile(param1);
+    const path = hasSource ? (param2 as string) : param1;
+    const opts = (hasSource ? param3 : (param2 as Options)) || { parser: {} };
 
-    const source = isFromLoader ? sourceOrPath : await readFile(sourceOrPath);
-    const path = isFromLoader ? (pathOrOptions as string) : sourceOrPath;
-    const opts = (isFromLoader ? options : (pathOrOptions as Options)) || {};
+    // Merge default options with user specified options & create context
+    const context = new Context(source, path, {
+        ...defaultOptions,
+        output: hasSource ? defaultOptions.output : 'raw',
+        ...opts,
+        parser: { ...defaultOptions.parser, ...opts.parser }
+    });
 
-    const result = parseImports(
-        new Context(source, path, {
-            ...defaultOptions,
-            output: isFromLoader ? defaultOptions.output : 'raw',
-            ...opts,
-            parser: {
-                ...defaultOptions.parser,
-                ...opts.parser
-            }
-        })
-    );
-
-    return isFromLoader ? result : result.then(ctx => ctx.output);
+    const result = parseImports(context);
+    return hasSource ? result : result.then(ctx => ctx.output);
 };
 
-function load(this: any, source: string) {
+async function load(this: any, source: string) {
     if (this.cacheable) this.cacheable();
 
     const callback = this.async();
     const userOptions = utils.getOptions(this);
 
-    parse(source, this.resourcePath, userOptions)
-        .then(context => {
-            context.dependencies.forEach(dep => {
-                if (!dep.startsWith('http://') && !dep.startsWith('https://'))
-                    this.addDependency(dep);
-            });
+    try {
+        const context = await parse(source, this.resourcePath, userOptions);
 
-            if (context.options.output === 'json')
-                callback(undefined, JSON.stringify(context.output));
-            else if (
-                context.options.output === 'yaml' ||
-                context.options.output === 'yml'
-            )
-                callback(undefined, YAML.safeDump(context.output));
-            else if (context.options.output === 'raw')
-                callback(undefined, context.output);
-            else
-                callback(
-                    undefined,
-                    `module.exports = ${JSON.stringify(context.output)};`
-                );
-        })
-        .catch(err => {
-            this.emitError(err);
-            callback(err, undefined);
+        context.dependencies.forEach(dep => {
+            if (!dep.startsWith('http://') && !dep.startsWith('https://'))
+                this.addDependency(dep);
         });
+
+        switch (context.options.output) {
+            case 'json':
+                callback(undefined, JSON.stringify(context.output));
+                break;
+            case 'yaml':
+            case 'yml':
+                callback(undefined, YAML.safeDump(context.output));
+                break;
+            case 'raw':
+                callback(undefined, context.output);
+                break;
+            default:
+                const json = JSON.stringify(context.output);
+                callback(undefined, `module.exports = ${json};`);
+                break;
+        }
+    } catch (err) {
+        this.emitError(err);
+        callback(err, undefined);
+    }
 }
 
 export interface YamlImportLoader {
