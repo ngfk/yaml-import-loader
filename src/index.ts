@@ -2,30 +2,9 @@ import * as YAML from 'js-yaml';
 import * as utils from 'loader-utils';
 import { basename, dirname, extname, join } from 'path';
 
-export interface BaseOptions {
-    importRoot: boolean;
-    importNested: boolean;
-    importKeyword: string;
-    importRawKeyword: string;
-    output: 'object' | 'json' | 'yaml' | 'yml' | 'raw';
-}
+import { getOptions, InternalOptions, Options } from './options';
 
-export interface InternalOptions extends Partial<BaseOptions> {
-    parser: InternalParserOptions;
-}
-
-export interface InternalParserOptions {
-    types: (((context: Context) => YAML.Type) | YAML.Type)[];
-    schema: YAML.Schema | YAML.Schema[] | undefined;
-    allowDuplicate: boolean;
-    onWarning?: ((error: YAML.YAMLException) => void);
-}
-
-export interface Options extends Partial<BaseOptions> {
-    parser?: ParserOptions;
-}
-
-export interface ParserOptions extends Partial<InternalParserOptions> {}
+export { Options, ParserOptions } from './options';
 
 export class Context {
     public input: string;
@@ -52,20 +31,6 @@ export class Context {
         this.resolveAsync = false;
     }
 }
-
-const defaultOptions: InternalOptions = {
-    importRoot: false,
-    importNested: true,
-    importKeyword: 'import',
-    importRawKeyword: 'import-raw',
-    output: 'object',
-    parser: {
-        types: [],
-        schema: YAML.SAFE_SCHEMA,
-        allowDuplicate: true,
-        onWarning: undefined
-    }
-};
 
 /**
  * Requests data from the specified uri returning the content as a string.
@@ -309,12 +274,11 @@ export const parse: parse = async (
     const opts = (hasSource ? param3 : (param2 as Options)) || { parser: {} };
 
     // Merge default options with user specified options & create context
-    const context = new Context(source, path, {
-        ...defaultOptions,
-        output: hasSource ? defaultOptions.output : 'raw',
-        ...opts,
-        parser: { ...defaultOptions.parser, ...opts.parser }
-    });
+    const context = new Context(
+        source,
+        path,
+        getOptions(opts, !hasSource ? 'raw' : undefined)
+    );
 
     const result = parseImports(context);
     return hasSource ? result : result.then(ctx => ctx.output);
