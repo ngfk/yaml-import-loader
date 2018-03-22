@@ -1,6 +1,6 @@
 import * as YAML from 'js-yaml';
 
-import { Context } from '.';
+import { Context } from './context';
 
 const defaultOptions: InternalOptions = {
     importRoot: false,

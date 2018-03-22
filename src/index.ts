@@ -1,37 +1,13 @@
 import * as YAML from 'js-yaml';
 import * as utils from 'loader-utils';
-import { basename, dirname, extname, join } from 'path';
+import { extname, join } from 'path';
 
-import { getOptions, InternalOptions, Options } from './options';
+import { Context } from './context';
+import { getOptions, Options } from './options';
 import { readFile, request, resolveNestedPromises } from './utils';
 
+export { Context } from './context';
 export { Options, ParserOptions } from './options';
-
-export class Context {
-    public input: string;
-    public output: any;
-    public dependencies: Set<string>;
-
-    public path: string;
-    public directory: string;
-    public filename: string;
-
-    public options: InternalOptions;
-    public resolveAsync: boolean;
-
-    constructor(input: string, path: string, options: InternalOptions) {
-        this.input = input;
-        this.output = {};
-        this.dependencies = new Set<string>();
-
-        this.path = path;
-        this.directory = dirname(path);
-        this.filename = basename(path);
-
-        this.options = options;
-        this.resolveAsync = false;
-    }
-}
 
 /**
  * Retrieves the file content and the location of the specified file.
