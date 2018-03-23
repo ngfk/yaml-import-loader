@@ -1,12 +1,13 @@
 # yaml-import-loader
 
-A customizable YAML loader for [Webpack](https://webpack.js.org) supporting the `!import <file>` type to include different YAML files, and `!import-raw <file>` type to include the raw contents of any file.
+A customizable YAML loader for [Webpack](https://webpack.js.org) supporting the `!import <file>` type to include different YAML files, and `!import-raw <file>` type to include the string contents of any file.
 
 [![NPM version](https://img.shields.io/npm/v/yaml-import-loader.svg)](https://www.npmjs.com/package/yaml-import-loader)
 [![Downloads](https://img.shields.io/npm/dt/yaml-import-loader.svg)](https://www.npmjs.com/package/yaml-import-loader)
 [![Build Status](https://travis-ci.org/ngfk/yaml-import-loader.svg?branch=master)](https://travis-ci.org/ngfk/yaml-import-loader)
 
 ## Installation
+
 ```
 npm install --save-dev yaml-import-loader
 ```
@@ -14,47 +15,51 @@ npm install --save-dev yaml-import-loader
 ## Usage
 
 ### Input files
+
 ```yaml
 ### ./main.yml
 local:  !import ./hello_world.yml
 module: !import module/array.yml
 url:    !import https://fake.url/old.json
 raw:    !import-raw ./plain.html
+```
 
+```yaml
 ### ./hello_world.yml
 hello: world
+```
 
+```yaml
 ### module/array.yml
 - elem1
 - elem2
+```
 
+```yaml
 ### https://fake.url/old.json
 {
   "jsonKey": "jsonValue"
 }
 ```
+
 ```html
 <!-- plain.html -->
 <div>Hey!</div>
-<p>
-  Some paragraph...
-</p>
+<p>Some paragraph...</p>
 ```
 
 ### JSON output
+
 ```json
 {
-  "local": {
-   "hello": "world"
-  },
-  "module": [
-    "elem1",
-    "elem2"
-  ],
-  "url": {
-    "jsonKey": "jsonValue"
-  },
-  "raw": "<!-- plain.html -->\n<div>Hey!</div>\n<p>\n  Some paragraph...\n</p>"
+    "local": {
+        "hello": "world"
+    },
+    "module": ["elem1", "elem2"],
+    "url": {
+        "jsonKey": "jsonValue"
+    },
+    "raw": "<!-- plain.html -->\n<div>Hey!</div>\n<p>Some paragraph...</p>"
 }
 ```
 
@@ -63,52 +68,53 @@ hello: world
 This loader is supposed to be used with [Webpack](https://webpack.js.org). The configuration snippet below is not a complete webpack configuration and only demonstrates how to configure this loader. Check the [documentation](https://webpack.js.org/configuration/) for information on how to configure webpack. The `parser` options are passed to the YAML parser: [js-yaml](https://github.com/nodeca/js-yaml). You can find more information about those options on their [README](https://github.com/nodeca/js-yaml/blob/master/README.md).
 
 ### Webpack - module.rules entry
+
 ```javascript
 {
   test: /\.ya?ml$/,
   use: {
     loader: 'yaml-import-loader'
-    
+
     // Note: The options below are the default options
     options: {
 
-      // Allows !import <file> without key. When using this the
-      // targets file content will be inserted at the import location.
+      // Allows the use of the `!import <file>` type without assigning it to a
+      // key. Using this will cause the target's file content to be inserted at
+      // the import location.
       importRoot: false,
 
-      // Allows !import <file> with key. Set this and importRoot to
-      // false for a regular yaml-loader.
+      // Allows the use of the `!import <file>` type with assigned to a key.
+      // Settings this and the `importRoot` options to false will result in a
+      // regular yaml-loader.
       importNested: true,
 
-      // The import keyword: `!${importKeyword} <file>` for yaml/json
-      // contents
+      // The import keyword used for yaml/json content.
       importKeyword: 'import',
 
-      // The import-raw keyword: `!${importRawKeyword} <file>` for raw
-      // file contents
+      // The import-raw keyword used for raw file content.
       importRawKeyword: 'import-raw',
 
-      // Output type. Can be 'object', 'json', or 'yaml'
+      // The output type. Can be 'object', 'json', or 'yaml'
       // 'object' -> exported js object
       // 'json'   -> stringified json
       // 'yaml'   -> stringified yaml
       output: 'object',
 
-      // The options below are passed to js-yaml.
+      // The parser options are passed to js-yaml.
       parser: {
 
-        // Allows adding custom types, details below.
+        // Custom types to be used by the parser, details below.
         types: [],
 
-        // Base schema to extend, can be an array of schemas.
+        // The base schema to extend, can be an array of schemas.
         schema: require('js-yaml').SAFE_SCHEMA,
 
-        // Allows a duplicate key. The old value in a duplicate key
-        // will be overwritten (json option in js-yaml).
+        // Allows duplicate keys to be used. The old value of a duplicate key
+        // will be overwritten by the new value (`json` option in `js-yaml`).
         allowDuplicate: true,
 
-        // function to call on warning messages. Parser will throw on
-        // warnings if this function is not provided.
+        // The function to call on warning messages. By default the parser will
+        // throw on warnings.
         onWarning: undefined
       }
     }
@@ -127,11 +133,11 @@ If you set the `importRoot` option to `true`, the yaml-import-loader will allow 
 nested: !import ./nested-import.yml
 ```
 
-> You must ensure that you do not mix types at the root level. If the file contains a mapping at the root level all root imports must import a mapping, if the root level is an array every root import must import an array. If this is not the case parsing will fail.
+> You must ensure that you do not mix types at the root level. If the file contains a mapping at the root level all root imports must import a mapping, if the root level contains array elements every root import must import array elements. If this is not the case parsing will fail.
 
 ### Custom types
 
-This loader internally uses [js-yaml](https://github.com/nodeca/js-yaml) for parsing, check their [wiki](https://github.com/nodeca/js-yaml/wiki/Custom-types) for examples on using custom types. The types option accepts an array with `Type` objects, and functions returning a `Type` object. If you create your type in a function you will get context in the first parameter, with this context you can instruct the loader to resolve promises (this already happens if you use imports).
+This loader internally uses [js-yaml](https://github.com/nodeca/js-yaml) for parsing, check their [wiki](https://github.com/nodeca/js-yaml/wiki/Custom-types) for examples on using custom types. The types option accepts an array with `Type` objects, and functions returning a `Type` object. If you create your type in a function you will get context in the first parameter, with this context you can instruct the loader to resolve promises.
 
 ```javascript
 const { Type } = require('js-yaml');
@@ -139,17 +145,20 @@ const { Type } = require('js-yaml');
 let types = [
   ctx => new Type('!async', {
     kind: 'mapping',
-    resolve: (data) => {
-      return data !== null && typeof data.delay === 'number';
+    resolve: data => {
+      return
+        data !== null &&
+        typeof data.delay === 'number' &&
+        typeof data.result === 'string';
     },
-    construct: (data) => {
+    construct: data => {
       ctx.resolveAsync = true;
       return new Promise(resolve => {
         setTimeout(() => resolve(data.result), data.delay);
       });
     },
     instanceOf: String
-  })
+  });
 ];
 ```
 
@@ -170,6 +179,7 @@ result: !async
 ## Use cases
 
 ### Basic usage
+
 ```javascript
 const yaml = require('./main.yml');
 
@@ -188,9 +198,11 @@ console.log(JSON.stringify(yaml, undefined, 4));
 //   "url": {
 //     "jsonKey": "jsonValue"
 //   },
-//   "raw": "<!-- plain.html -->\n<div>Hey!</div>\n<p>\n  Some paragraph...\n</p>"
+//   "raw": "<!-- plain.html -->\n<div>Hey!</div>\n<p>Some paragraph...</p>"
 // }
 ```
 
 ### Examples
-* [ngx-translate-yaml](https://github.com/ngfk/ngx-translate-yaml): Use ngx-translate, with yaml files, without runtime loading or parsing. 
+
+[ngx-translate-yaml](https://github.com/ngfk/ngx-translate-yaml)  
+Use ngx-translate, with yaml files, without runtime loading or parsing. Shows how yaml files can be transformed into json files for ngx-translate to use.

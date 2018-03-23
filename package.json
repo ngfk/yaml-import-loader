@@ -1,7 +1,7 @@
 {
     "name": "yaml-import-loader",
     "version": "1.3.5",
-    "description": "A customizable YAML loader for Webpack supporting the '!import <file>' type to include different YAML files, and '!import-raw <file>' type to include the raw contents of any file.",
+    "description": "A customizable YAML loader for Webpack supporting the '!import <file>' type to include different YAML files, and '!import-raw <file>' type to include the string contents of any file.",
     "keywords": [
         "customizable",
         "import",
