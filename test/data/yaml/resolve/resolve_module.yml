@@ -1,2 +1,2 @@
 
-result: !import mocha/lib/browser/.eslintrc.yaml
+result: !import mocha/lib/browser/.eslintrc.yml

@@ -69,7 +69,7 @@ describe('loader resolving', () => {
             './data/yaml/resolve/resolve_module.yml',
             options
         );
-        const modulePath = require.resolve('mocha/lib/browser/.eslintrc.yaml');
+        const modulePath = require.resolve('mocha/lib/browser/.eslintrc.yml');
         const moduleCont = YAML.safeLoad(await utils.read(modulePath));
 
         const { result, deps } = await utils.load(context, loader);
